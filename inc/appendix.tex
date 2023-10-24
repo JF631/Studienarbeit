@@ -1,0 +1,66 @@
+\graphicspath{{./figures/}}
+\chapter*{Anhang}
+\addcontentsline{toc}{chapter}{Anhang}
+\renewcommand{\thesection}{\Alph{section}}
+
+\section{\acl*{pdm}}
+\label{sec:app_pdm}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{pdm_example.png}
+    \caption[Beispiel eines \acs*{pdm} Signals]{\acs*{pdm} Signal einer simplen Sinusfunktion }
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\textwidth]{pdm_bitstream.png}
+    \caption[Beispiel eines \acs*{pdm} Bitstreams]{\acs*{pdm} Bitstream der oben dargestellten Sinuskurve}
+\end{figure}
+\FloatBarrier
+\newpage
+
+\section{UML Diagramme}
+\label{sec:class_diag_filterstages}
+
+\begin{figure}[h]
+    \centering
+    \includepdf[pages=-, scale=0.8]{uml_filterstage.pdf}
+    \caption[UML Diagramm des FilterStage Interfaces]{UML Diagramm des FilterStage Interfaces}
+\end{figure}
+\FloatBarrier
+
+\newpage
+\begin{figure}[htbp]
+    \centering
+    \includepdf[pages=-, scale=0.7]{uml_samplefilterstage.pdf}
+    \caption[UML der SampleFilterStage]{Klassendiagramm der SampleFilterStage der schnellen Faltung im Frequenzbereich}
+\end{figure}
+
+\newpage
+\section{Beispiel eines Lookup Puffers}
+\label{sec:example_lookup_buffer}
+In der \texttt{BitFilterStage} werden bei der ersten Faltung keine echten Berechnungen durchgeführt. 
+Stattdessen werden alle möglichen Ergebnisse vorab berechnet und in einem Lookup Puffer als Textur im Grafikspeicher hinterlegt.\\
+Betrachtet man beispielsweise den \acs*{fir} Filter  $F = \texttt{[0.5, 1.0, 0.5]}$ der Länge $3$, gibt es $2^3 = 8$ mögliche Faltungsmöglichkeiten mit einem Bitmuster gleicher Länge.
+\begin{table}[!h]
+    \centering
+    \begin{tabular}{ |p{2cm}|p{5cm}|p{5cm}| }
+        \hline
+        \multicolumn{3}{|c|}{Lookup Table}\\
+        \hline
+        Dec & Bitmuster \newline $0.5 \ 1.0 \ 0.5$ & Ergebnis\\
+        \hline
+        0 & $0 \ \ \ \ 0 \ \ \ \ 0$ & $0$\\
+        1 & $0 \ \ \ \ 0 \ \ \ \ 1$ & $0.5$\\
+        2 & $0 \ \ \ \ 1 \ \ \ \ 0$ & $1.0$\\
+        3 & $0 \ \ \ \ 1 \ \ \ \ 1$ & $1.5$\\
+        4 & $1 \ \ \ \ 0 \ \ \ \ 0$ & $0.5$\\
+        5 & $1 \ \ \ \ 0 \ \ \ \ 1$ & $1.0$\\
+        6 & $1 \ \ \ \ 1 \ \ \ \ 0$ & $1.5$\\
+        7 & $1 \ \ \ \ 1 \ \ \ \ 1$ & $2.0$\\
+        \hline
+    \end{tabular}
+    \caption{Beispiel eines Lookup Tables für die erste direkte Faltung.}
+    \label{tab:lookup_example}
+\end{table}
+

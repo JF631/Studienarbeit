@@ -1,0 +1,137 @@
+\documentclass[12pt, a4paper, final, oneside]{scrreprt}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{lmodern}
+\usepackage{threeparttable}
+\usepackage{subcaption}
+\usepackage{microtype}
+\usepackage{textcomp}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{tabularx}
+\usepackage[toc, page]{appendix}
+\usepackage{acronym}
+\usepackage[english]{babel}
+\usepackage{hyperref}
+\usepackage{setspace}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{mathtools}
+\usepackage{listings}
+\usepackage{placeins}
+\usepackage{MnSymbol}
+\usepackage{caption}
+\usepackage{pgfplots}
+\usepackage{appendix}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{pdfpages}
+\usepackage{multirow}
+\usepackage[nomain, nonumberlist]{glossaries}
+\usepackage[backend=biber, style=numeric-comp, citestyle=numeric, urldate=long, 
+dateabbrev=false, sorting=none,maxbibnames=2]{biblatex}
+\DefineBibliographyStrings{german}{andothers={et\addabbrvspace al\adddot}}
+
+
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows, fit, backgrounds}
+\tikzstyle{startstop} = [rectangle, rounded corners, minimum width=3cm, minimum height=1cm,text centered, draw=black, fill=red!30]
+\tikzstyle{io} = [trapezium, trapezium left angle=70, trapezium right angle=110, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=blue!30]
+\tikzstyle{process} = [rectangle, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=orange!30]
+\tikzstyle{decision} = [diamond, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=green!30]
+\tikzstyle{arrow} = [thick,->,>=stealth]
+\tikzstyle{box} = [draw, inner sep=5pt, rounded corners, fill=gray!10]
+
+
+\usepackage{fancyhdr}
+\renewcommand{\sectionmark}[1]{\markright{#1}}
+\pagestyle{fancy}
+\fancyhead[R]{}
+\fancyhead[L]{\itshape\nouppercase\rightmark}
+
+\lstset{
+  frame=lrtb,
+  language=Python,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{olive},
+  stringstyle=\color{magenta},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3,
+  numbers=left,
+  stepnumber=1,
+  xleftmargin=1cm,
+  escapechar={|},
+  morestring=[s]""
+}
+
+\hypersetup{
+    pdfauthor={Jakob Faust},
+    pdftitle={TINF21IT1_Faust_Jakob_T3_200},
+    colorlinks,
+    citecolor=black,
+    filecolor=black,
+    linkcolor=black,
+    urlcolor=black,
+    linktoc=all
+}
+\geometry{top=3cm, right=2.5cm, bottom=3cm, left=2.5cm}
+\onehalfspacing
+
+%----- LOAD DATA -----
+\input{inc/macros.tex}
+\addbibresource{inc/literature.bib}
+
+\clubpenalty10000
+\widowpenalty10000
+\displaywidowpenalty=10000
+\pdfpageheight=\paperheight
+\raggedbottom
+\begin{document}
+    \include{inc/titlepage_dhbw}
+    % \include{inc/declaration}
+    % \include{chapter/abstract}
+    \pagenumbering{Roman}
+    \setcounter{page}{2}
+
+    %----- TABLE OF CONTENTS AND ACRONYMS -----
+
+    \tableofcontents
+    \cleardoublepage
+    \phantomsection
+    \addcontentsline{toc}{chapter}{List of Figures}
+    \listoffigures
+    \cleardoublepage
+    \phantomsection
+    \addcontentsline{toc}{chapter}{Listings}
+    \lstlistoflistings
+    \cleardoublepage
+    \phantomsection
+    \addcontentsline{toc}{chapter}{List of acronyms}
+    \include{inc/acronyms.tex}
+    \cleardoublepage
+
+    %----- MAIN PART -----
+    \pagenumbering{arabic}
+    \include{chapter/1_chapt_introduction.tex}
+    \include{chapter/2_chapt_fundamentals.tex}  
+    \include{chapter/3_chapt_konzept.tex}
+    \include{chapter/4_chapt_durchfuehrung.tex}
+    \include{chapter/5_chapt_ergebnis.tex}
+
+    %----- BIBLIOGRAPHY -----
+    \pagenumbering{Roman}
+    \setcounter{page}{7}
+    \cleardoublepage
+    \printbibliography[heading=bibintoc, title = {Literatur}]
+
+    % \appendix
+    % \include{inc/appendix.tex}
+\end{document}

@@ -76,6 +76,8 @@ acs-*.bib
 # endnotes
 *.ent
 
+*.jpg
+
 # fixme
 *.lox
 
