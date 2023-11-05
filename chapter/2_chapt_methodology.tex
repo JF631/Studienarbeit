@@ -1,10 +1,44 @@
 \graphicspath{{./figures/}}
-\chapter{Fundamentals} 
+\chapter{Methodology} 
 The following chapter provides an overview over the relevant development 
-components that are used in this project.
-Therefore the used software packages are introduced before a short outline of
+components that are used within this project.
+Therefore, the used software packages are introduced before a short outline of
 the utilized drone hardware is given.
 
 \section{Software fundamentals}
 \label{sec:2_software_fund}
-As the project will be used with an 
+As the main part of this project's software will run on a portable remote 
+computer allowing for not only to control the drone but also to perform the 
+long jump analysis on video inputs, every software component is chosen to 
+demand as little hardware requirements as possible.
+Especially no \ac{GPU} is required to run the software.
+All image processing is performed using the \ac{CPU} only.
+Furthermore, the software is designed to run platform independent.\\
+
+\subsection{Programming Language and why Python}
+\label{subsec:2_programming_language}
+
+\subsection{Mediapipe for detecting body poses}
+\label{subsec:2_mediapipe_framework}
+One of the software's main tasks is to perform a human body pose detection in
+videos.
+Because this part runs on the remote computer only, it can also handle
+pre-recorded videos that should be evaluated.\\
+The evaluation itself is performed using the mediapipe framework.
+It uses a pre-trained neural network that is able to detect 33 key points in 
+body poses.
+The network can also be fine-tuned to improve its' accuracy.
+Even if this so called \textit{transfer-training} method requires significantly
+less training data than training a neural network from scratch, it is not applied
+within this project as first test runs already showed accurate results.\\
+Furthermore the mediapipe framework does not require any hardware acceleration
+and is renown for it's precise output.
+Hii et al. even showed in \cite{mp_gait_analysis} that the framework can be 
+applied in medical gait analysis applications to replace marker based 
+approaches.\\
+Mediapipe can deal with multiple input types including videos and live streams
+which is ideal for this project.
+%here picture of mediapipe body pose key points
+
+\subsection*{Different detection approaches}
+%Advantage over OpenPose: (faster, offers 3d output, no hardware acceleration)
