@@ -3,10 +3,13 @@ Long jump is an athletic discipline that is renowned for its technical
 complexity and the precise movement patterns it demands from athletes.
 Even apparently small technical inaccuracies can significantly impact an
 athlete's performance.
-Therefore it is crucial to understand and continuously improve these movement 
+Moreover, as shown in \cite{long_jump_dynamics} the forces during the take-off 
+phase can reach up to 10~times the athlete's body weight, 
+increasing the risk of serious injuries due to technical inaccuracies.
+Therefore, it is crucial to understand and continuously improve these movement 
 patterns in training.
-However, taken the high approach velocity\footnote{around 10~m/s in male semi 
-professional long jump} into account, this can quickly become a difficult 
+However, taken the high approach velocity\footnote{around 10~m/s in male 
+semi-professional long jump} into account, this can quickly become a difficult 
 task.
 Especially the take-off phase can be very short and therefore hard to analyze.\\
 
@@ -24,7 +27,7 @@ Additionally, fixed markers need to be attached to an athletes body to be able
 to track their body position.\\
 
 \noindent While these methods provide exact and reliable results, they are 
-usually not accessible for hobby- and semi professional athletes.\\
+usually not accessible for hobby- and semi-professional athletes.\\
 In recent years however the advances in \ac{AI} and especially within the area 
 of deep neural network paved the way for analyzing methods that require less 
 complex setups.
@@ -40,7 +43,7 @@ For this purpose, the drone should autonomously fly next to the athlete
 throughout the whole jump, capturing their motion and therefore allow for a 
 complete jump analysis.
 The drone itself is based on \ac{FPV} drone hardware.
-It is build from scratch using an on board single-board computer as flight 
+It is build from scratch using an onboard single-board computer as flight 
 control unit responsible for capturing the video.
 Additionally, a ground station software is developed to allow for a convenient
 jump analysis regarding the overall body pose as well as a fixed set of 
