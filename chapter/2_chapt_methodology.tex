@@ -5,22 +5,30 @@ components that are used within this project.
 Therefore, the used software packages are introduced before a short outline of
 the utilized drone hardware is given.
 
-\section{Software fundamentals}
-\label{sec:2_software_fund}
-As the main part of this project's software will run on a portable remote 
-computer allowing for not only to control the drone but also to perform the 
-long jump analysis on video inputs, every software component is chosen to 
+\section{Software fundamentals}\label{sec:2_software_fund}
+As the main part of this project's software will run on a portable remote
+computer allowing for not only to control the drone but also for performing the
+long jump analysis on video inputs, every software component is chosen to
 demand as little hardware requirements as possible.
 Especially no \ac{GPU} is required to run the software.
 All image processing is performed using the \ac{CPU} only.
 Furthermore, the software is designed to run platform independent.\\
 
-\subsection{Programming Language and why Python}
-\label{subsec:2_programming_language}
-Python is the most used programming language in the scientific area.
+\subsection{Programming Language and why Python}\label{subsec:2_programming_language}
+Because of its interpreted nature and many cross-platform libraries, Python is
+one of the most used programming languages in the scientific area.
+Furthermore, it offers a high level of abstraction allowing for rapid 
+prototyping approaches which is a key factor for this project.
+Besides fast implementation, Python nevertheless supports complex programming 
+concepts like object-orientation.\\
+Additionally, as stated in \autoref{subsec:2_mediapipe_framework} many machine
+learning and \ac{AI} projects for detecting body poses have already been 
+successfully implemented using Python.\\
+Third party libraries and frameworks like \textit{OpenCV} for image processing 
+and \textit{PyQt} for \ac{GUI} development are widely used and therefore well documented.
+This leads to the decision to use Python as programming language within this work. 
 
-\subsection{Mediapipe for detecting body poses}
-\label{subsec:2_mediapipe_framework}
+\subsection{Mediapipe for detecting body poses}\label{subsec:2_mediapipe_framework}
 One of the software's main tasks is to perform a human body pose detection on
 video inputs.
 Because this part runs on the remote computer only, it can also handle
@@ -60,7 +68,7 @@ calculations and ground contact detection.
 Thus, a good performance in detecting the according key points within these 
 areas is crucial for the software's overall reliability.
 
-\subsection{Why Mediapipe?}
+\subsection{Why Mediapipe?}\label{subsec:2_why_mediapipe}
 In recent years many approaches towards accurate body pose detection were 
 developed and implemented.
 Many of those offer decent accuracies, but often lack reasonable performance,
@@ -76,9 +84,9 @@ person needs to be tracked at a time.
 Even though OpenPose of course can handle one person pose estimation, 
 mediapipe outperforms OpenPose in this area.
 Back in 2016 Kocabas et al.~achieved around 23~FPS using \ac{GPU} accelerated
-OpenPose pose detection \cite{openPose_speed_gpu} and Osokin later proposed an
+OpenPose pose detection~\cite{openPose_speed_gpu} and Osokin later proposed an
 improved neural network design, allowing for up to 28~FPS without hardware 
-acceleration \cite{openPose_speed_cpu}.
+acceleration~\cite{openPose_speed_cpu}.
 As of 2023 these benchmarks are still reasonable.
 Mediapipe however achieves speeds of up to 63\% higher.\\
 While OpenPose uses a \textit{Bottom-Up} approach due its multi-person 
@@ -105,3 +113,87 @@ While OpenPose and AlphaPose offer 2D coordinates for each detected key point,
 Mediapipe additionally offers a depth estimation resulting in a spatial 3D 
 coordinate for each detected key point.
 Thereby, more comprehensive analysis can be performed.   
+
+\subsection{OpenCV}\label{subsec:2_openCV}
+
+\subsection{HDF5 file format}\label{subsec:2_hdf5}
+To avoid analyzing the same jump, therefore the same video file, multiple 
+times, the jump parameters should be saved after the analysis process alongside
+with the annotated video file, that visualizes the detected body pose (see
+\autoref{fig:2_body_keypoints}).
+Because parameters such as knee angles, arm angles, ground contact, etc.\ need 
+to be stored frame-wise, a structured file format is suitable.\\
+One common open source structured file format is HDF5.
+It is an acronym for Hierarchical Data Format (Version 5) and is very helpful 
+to store large amounts of data as well as heterogeneous data. 
+As the name already suggests, data is stored in a hierarchical, tree-like way.\\
+A HDF5 tree mainly consists of three pre-defined components that allow to 
+organize data in a file-system like fashion.
+The tree root, groups and datasets.
+\textit{Groups} are folder-like structures that can either contain more groups 
+or Datasets.
+\textit{Datasets} hold the actual data that need to be stored.\\
+Furthermore, each level (tree root, groups and datasets) can hold additional 
+information via metadata.
+The metadata could for example contain information about metrics, timestamps or 
+any other describing information.
+Therefore, each HDF5 file itself becomes a self-describing file that does not
+require any more than the included information to be interpreted correctly.\\
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[scale=0.24]{figures/hdf5_general_structure.jpg}
+    \caption[HDF5 file structure]
+    {Principle HDF5 file structure~\footnote{
+        \url{https://www.neonscience.org/resources/learning-hub/tutorials/about-hdf5}}}
+    \label{fig:2_principle_hdf5_structure}
+\end{figure}
+\noindent Within this work, one HDF5 file will be created per jump analysis.
+The frames are stored in a group each and the actual calculated parameters are 
+saved group-wise as datasets.
+
+\section{\acs*{GUI} development}
+The software that is developed within this work should be useable on-field to
+allow for a fast analysis process.
+Besides the video analysis, the drone control should be embedded in the same 
+software to always guarantee control over the drone.\\
+Thus, a simple \ac{GUI} is developed to offer a convenient drone control and 
+video analysis process.\\
+The \ac{GUI} is developed using Qt and its Python binding PyQt.
+Both are presented in this section. 
+
+\subsection{Development framework Qt}\label{subsec:2_qt}
+Qt is a development framework based on the programming language C++.
+It includes a \ac{GUI} toolkit and therefore enables platform-independent
+application development.
+All common platforms including the Linux, Windows and MacOS are supported by 
+Qt.
+Additionally, both mobile operating systems, Android and iOS, are supported.\\
+This project however will focus on the development of an application that is 
+able to run under Windows, Linux and MacOS.\\
+The Qt framework is mainly chosen because of its rich and comprehensive 
+documentation\footnote{\url{https://doc.qt.io/}} and the availability of the 
+well-supported Python binding \textit{PyQt}.\\
+As Qt is based on C++ all Qt source files are translated to C++ code.
+This step is realized by the \texttt{Meta Obejet Compiler (MOC)} which is 
+integrated as pre-processor.
+Thus, all Qt files are translated to so-called \textit{Meta Obejet Code}, 
+which can be seen as C++ source code with some enhancements.
+The most important enhancement is the signal and slot functionality which 
+allows for an easy communication between different software and design 
+elements (e.g.\ show a message dialog when a button is clicked).\\
+Another important enhancement for this work is the convenient multi-threading
+management necessary for offering a responsive \ac{GUI} even when cpu-bound 
+calculations such as image processing is performed.
+
+\subsection*{The \acs*{GUI} module PyQt}\label{subsec:2_pyqt}
+Like explained earlier, Qt is based on the programming language C++.
+As justified in \autoref{subsec:2_programming_language} however, Python is 
+chosen as programming language for this project.
+To combine the Python's machine learning advantages with Qt's 
+platform-independent \ac{GUI} development options, the module \textit{PyQt5}
+\footnote{\url{https://pypi.org/project/PyQt5/}} is used.\\
+This module allows building Qt applications using Python instead of C++. 
+Every other described advantage Qt offers remains valid with the use of PyQt.
+Thus, the whole software within this project including the \ac{GUI} can be 
+developed using Python.
