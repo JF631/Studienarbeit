@@ -33,7 +33,7 @@ One of the software's main tasks is to perform a human body pose detection on
 video inputs.
 Because this part runs on the remote computer only, it can also handle
 pre-recorded videos that should be evaluated.\\
-The evaluation itself is performed using the mediapipe framework.
+The evaluation itself is performed using the Mediapipe framework.
 This framework uses a pre-trained convolutional neural network that is able to
 detect 33 key points in human body poses \cite{mediapipe_paper}.
 The network could theoretically even be fine-tuned to improve its accuracy on
@@ -41,7 +41,7 @@ specific input types.
 Even if this so called \textit{transfer-training} method requires significantly
 less training data than training a neural network from scratch, it is not applied
 within this project as first test runs already showed reliable results.\\
-Furthermore, the mediapipe framework does not require any hardware acceleration
+Furthermore, the Mediapipe framework does not require any hardware acceleration
 and is renowned for its precise output.
 Hii et al.~for example showed in~\cite{mp_gait_analysis}, 
 \cite{mp_gait_analysis_2} that the framework can be applied in medical gait 
@@ -115,6 +115,17 @@ coordinate for each detected key point.
 Thereby, more comprehensive analysis can be performed.   
 
 \subsection{OpenCV}\label{subsec:2_openCV}
+OpenCV is an open source library commonly used for image processing in the 
+area of computer vision and machine learning.
+It is written in C++, thus offering high performance in numerical operations,
+especially matrix operations.\\
+\texttt{python-opencv} is the python wrapper for OpenCV which will be used in
+this project to efficiently read and process video frames.
+The python wrapper imports the underlying C++ functions as modules to take 
+advantage of C++'s efficiency, resulting in significantly higher performance
+compared to equivalent Python only implementations.
+Furthermore, it is fully compatible with the \texttt{numpy} library, which 
+allows for seamless conversion between numpy arrays and OpenCV image matrices.
 
 \subsection{HDF5 file format}\label{subsec:2_hdf5}
 To avoid analyzing the same jump, therefore the same video file, multiple 
@@ -148,6 +159,7 @@ require any more than the included information to be interpreted correctly.\\
         \url{https://www.neonscience.org/resources/learning-hub/tutorials/about-hdf5}}}
     \label{fig:2_principle_hdf5_structure}
 \end{figure}
+\FloatBarrier
 \noindent Within this work, one HDF5 file will be created per jump analysis.
 The frames are stored in a group each and the actual calculated parameters are 
 saved group-wise as datasets.
@@ -166,7 +178,7 @@ Both are presented in this section.
 Qt is a development framework based on the programming language C++.
 It includes a \ac{GUI} toolkit and therefore enables platform-independent
 application development.
-All common platforms including the Linux, Windows and MacOS are supported by 
+All common platforms including Linux, Windows and MacOS are supported by 
 Qt.
 Additionally, both mobile operating systems, Android and iOS, are supported.\\
 This project however will focus on the development of an application that is 
@@ -187,13 +199,15 @@ management necessary for offering a responsive \ac{GUI} even when cpu-bound
 calculations such as image processing is performed.
 
 \subsection*{The \acs*{GUI} module PyQt}\label{subsec:2_pyqt}
-Like explained earlier, Qt is based on the programming language C++.
-As justified in \autoref{subsec:2_programming_language} however, Python is 
-chosen as programming language for this project.
-To combine the Python's machine learning advantages with Qt's 
-platform-independent \ac{GUI} development options, the module \textit{PyQt5}
-\footnote{\url{https://pypi.org/project/PyQt5/}} is used.\\
-This module allows building Qt applications using Python instead of C++. 
-Every other described advantage Qt offers remains valid with the use of PyQt.
+The discrepancy between Qt as C++ based framework and Python as chosen
+programming language for this project (as explained in \autoref{
+subsec:2_programming_language}) can be overcome using Qt's Python binding PyQt.
+By using PyQt we can combine Python's machine learning advantages with Qt's 
+platform-independent \ac{GUI} development.
+More specifically \textit{PyQt5} \footnote{\url{https://pypi.org/project/PyQt5/}} 
+is used.\\
+It allows building complex Qt applications using Python only instead of C++.
+All other described advantages that Qt offer remain valid despite the use 
+of PyQt.
 Thus, the whole software within this project including the \ac{GUI} can be 
-developed using Python.
+developed using Python as programming language.
