@@ -33,7 +33,7 @@ One of the software's main tasks is to perform a human body pose detection on
 video inputs.
 Because this part runs on the remote computer only, it can also handle
 pre-recorded videos that should be evaluated.\\
-The evaluation itself is performed using the mediapipe framework.
+The evaluation itself is performed using the Mediapipe framework.
 This framework uses a pre-trained convolutional neural network that is able to
 detect 33 key points in human body poses \cite{mediapipe_paper}.
 The network could theoretically even be fine-tuned to improve its accuracy on
@@ -41,7 +41,7 @@ specific input types.
 Even if this so called \textit{transfer-training} method requires significantly
 less training data than training a neural network from scratch, it is not applied
 within this project as first test runs already showed reliable results.\\
-Furthermore, the mediapipe framework does not require any hardware acceleration
+Furthermore, the Mediapipe framework does not require any hardware acceleration
 and is renowned for its precise output.
 Hii et al.~for example showed in~\cite{mp_gait_analysis}, 
 \cite{mp_gait_analysis_2} that the framework can be applied in medical gait 
@@ -159,6 +159,7 @@ require any more than the included information to be interpreted correctly.\\
         \url{https://www.neonscience.org/resources/learning-hub/tutorials/about-hdf5}}}
     \label{fig:2_principle_hdf5_structure}
 \end{figure}
+\FloatBarrier
 \noindent Within this work, one HDF5 file will be created per jump analysis.
 The frames are stored in a group each and the actual calculated parameters are 
 saved group-wise as datasets.

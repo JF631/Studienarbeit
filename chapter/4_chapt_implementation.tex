@@ -1,5 +1,26 @@
 \graphicspath{{./figures/}}
 \chapter{Implementation}
-This chapter focuses on the overall software's implementation.
-It mainly covers the four parts hardware implementation, long jump analysis,
+This chapter focuses on the overall project's implementation.
+It mainly covers the four parts hardware assembly, long jump analysis,
 drone control and their consolidation into one \ac{GUI}.
+
+\section{Hardware}\label{sec:4_hardware}
+In order to capture high-quality video recordings that cover a complete long 
+jump, from the first step all the way to the landing, a drone is used to fly
+next to the athlete throughout the whole process.
+Thus, a drone in form of a quadcopter is built from scratch.
+Its control will be integrated seamlessly in the projects' \ac{GUI}.\\
+This section introduces the hardware components that are used for building 
+this drone as well as its flight control unit.\\
+A short outline of the hardware is given in.
+The assembly is shown in, while ... focuses on the PixHawk flight 
+controller and its setup.
+
+\subsection{Drone Basis}\label{subsec:4_drone_basis}
+As basis for the quadcopter I chose a \textit{Holybro S500 V2} frame kit that 
+includes basic components such as a landing gear and rotors as well as a 
+dedicated platform for a flight control unit and a battery.
+Furthermore, the main platform already includes a \ac{PDB} to split the 
+battery's power equally to all four motors.
+Additionally, motors with one \ac{ESC} each are mounted on the frame kit to be
+able to control the motor speed individually.   
