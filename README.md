@@ -8,4 +8,4 @@ The compiled version will always match the latest Tex Version.
 
 The software code of this project can be found in [this repository](https://github.com/JF631/FLYJUMP).
 
-All tasks that belong to this project are tracked in a [Jira bord](https://flyjump.atlassian.net/jira/core/projects/FLYJ/timeline).
+All tasks that belong to this project are tracked in a [Jira board](https://flyjump.atlassian.net/jira/core/projects/FLYJ/timeline).
