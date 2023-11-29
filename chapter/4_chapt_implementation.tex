@@ -70,16 +70,24 @@ and can be seen in \autoref{fig:motors_and_esc}.
     \begin{subfigure}[b]{0.48\textwidth}
         \includegraphics*[scale=0.15]{motor.jpg}
         \caption{920KV Motor}
+        \label{subfig:motor_picture}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.5\textwidth}
         \includegraphics*[scale=0.15]{esc.jpg}
         \caption{\acl*{ESC}}
+        \label{subfig:esc_picture}
     \end{subfigure}
     \caption[Motor and \acs*{ESC}]{Motor (a) and \acs*{ESC} (b)}
     \label{fig:motors_and_esc}
 \end{figure}
 \FloatBarrier
+The drones' motors performance capabilities are defined by the number of 
+\ac{RPM} per input voltage.
+As can be seen in \autoref{subfig:motor_picture}, the used Holybro motors are
+capable of 920~\ac{RPM}.
+As comparison, that is in the same area in which commercial hobby drones 
+operate while race drones use motors that go up to 2000~\ac{RPM}.
 
 \subsection*{Control Hardware}\label{subsec:4_control_hardware}
 As noted before, the \acp{ESC} which are directly connected to the motors
