@@ -86,33 +86,61 @@ The drones' motors performance capabilities are defined by the number of
 \ac{RPM} they can perform per 1V input.
 As can be seen in \autoref{subfig:motor_picture}, this link between 
 rotation speed and input voltage is expressed in the arbitrary unit \textit{KV}.
-The chosen motors are capable of rotate with a speed of 920~\ac{RPM} per 1V 
+The chosen motors are capable of rotating with a speed of 920~\ac{RPM} per 1V 
 input voltage. 
 Put into context, this is a common rotation speed in commercial and hobby 
 drone applications.
 Racing drones however, operate at motor speeds of up to 3500~KV.
 
 \subsection*{Control Hardware}\label{subsec:4_control_hardware}
-In order to control the drone each motor must be controllable individually.
+In order to control the drone, each motor must be controllable individually.
 This is usually realised using \acp{ESC} which connect the motors to a 
 flight control unit.
 The flight control unit is remotely connected to the ground station and 
 translates directional instructions into motor rotation speeds.\\
-As the this project's quadcopter should not only be manually controllable 
+As this project's quadcopter should not only be manually controllable 
 from a ground station but should also automatically fly next to an athlete, 
-an additional on board companion computer is needed.
-This companion computer then sends commands to the flight controller itself 
+an additional on-board companion computer is used.
+This companion computer itself sends commands to the flight controller 
 based on video input without user intervention.\\
 The combination of flight controller and on-board companion computer will in 
 the following be called \textit{control hardware}.\\
-There are many different types of flight controllers commercially available.
+There are many types of different flight controllers available commercially.
 However, most of them are not meant to be used in combination with a companion
 computer.\\
-Two of the most commonly used flight controllers in autonomous drone projects 
+Two of the most commonly used flight controllers in autonomous drone projects
 are the \textit{PixHawk} and the \textit{Navio2}.
-The former is a totally independent system which can also operate without a 
+They are often chosen because they both work together seamlessly with a 
 companion computer.
-Latter is a \ac{HAT} specifically designed for a Raspberry Pi as companion 
-computer.
-Thus, it does not include an own \ac{CPU} but uses the Raspberry Pis's to 
-perform flight relevant calculations.
+The former is a totally independent system which can also operate without any 
+supporting computer.
+The latter is implemented as \ac{HAT} specifically designed for a Raspberry 
+Pi.
+Thus, it does not include an own \ac{CPU} but uses the Raspberry Pis's 
+resources to perform flight relevant calculations.
+
+
+\begin{table}[h!]
+\centering
+\begin{tabular}[c]{|p{4cm}||p{4cm}|p{4cm}|}
+\hline
+\multicolumn{3}{|c|}{Flight Controller Comparison}\\
+\hline
+Criteria & PixHawk & Navio2\\
+\hline
+\hline
+Processor & TBD & TBD\\
+\hline
+Included sensors & TBD & TBD\\
+\hline
+Ports & TBD & TBD\\
+\hline
+Other & Failsafe options (e.g. extra power supply, GPS, etc.) & None\\
+\hline
+Price (Eur.) & TBD & TBD\\
+\hline
+\end{tabular}
+\caption[Flight controller comparison]{Comparison between PixHawk and 
+Navio2 flight controller.}
+\label{table:4_flight_cotroller_cmp}
+\end{table}
