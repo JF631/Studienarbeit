@@ -4,7 +4,7 @@ This chapter focuses on the overall project's implementation.
 It mainly covers the four parts hardware assembly, long jump analysis,
 drone control and their consolidation into one \ac{GUI}.
 
-\section{Hardware}\label{sec:4_hardware}
+\section{Hardware setup}\label{sec:4_hardware}
 In order to capture high-quality video recordings that cover a complete long 
 jump, from the first step all the way to the landing, a drone is used to fly
 next to the athlete throughout the whole process.
@@ -12,9 +12,10 @@ Thus, a drone in form of a quadcopter is built from scratch.
 Its control will be integrated seamlessly in the projects' \ac{GUI}.\\
 This section introduces the hardware components that are used for building 
 this drone as well as its flight control unit.\\
-A short outline of the hardware is given in.
-The assembly is shown in, while ... focuses on the PixHawk flight 
-controller and its setup.
+A short outline of the hardware is given in 
+\autoref{subsec:4_hardware_selection},
+while \autoref{subsec:4_hw_setup} focuses on the overall assembly of the 
+selected hardware.
 
 \subsection{Hardware selection}\label{subsec:4_hardware_selection}
 Currently, commercial drone hardware on the market is mainly separable into 
@@ -93,16 +94,26 @@ drone applications.
 Racing drones however, operate at motor speeds of up to 3500~KV.
 
 \subsection*{Control Hardware}\label{subsec:4_control_hardware}
-In order to control the drone, each motor must be controllable individually.
-This is usually realised using \acp{ESC} which connect the motors to a 
-flight control unit.
-The flight control unit is remotely connected to the ground station and 
-translates directional instructions into motor rotation speeds.\\
-As this project's quadcopter should not only be manually controllable 
-from a ground station but should also automatically fly next to an athlete, 
-an additional on-board companion computer is used.
-This companion computer itself sends commands to the flight controller 
-based on video input without user intervention.\\
+In order to perform flight maneuvers with a quadcopter, each motor must be
+controllable individually.
+The calculation of the correct rotation speeds is generally performed by 
+a \textit{flight control unit}.
+Usually, it receives directional instructions from a remote control as input,
+combines them with many parameters (e.g.~\acs{GPS} position, height over ground,
+speed, etc.) and generates a (\acs{PWM}) output signal for each motor.\\
+Within this project the flight controller needs to deal with two different 
+inputs.
+First, the ground station which can be seen as a remote control in this case.
+Additionally, the drone should be able to fly autonomously next to an athlete
+during their long jump training.
+Here, the second input gets important.
+The autonomous fly option requires the quadcopter to perform a person 
+detection and therefore image processing on-board.
+As the flight controller itself is not able to perform such calculations, an
+additional \textit{companion computer} is required.
+This companion computer will then send directional instructions just like the 
+ones from the ground station to the flight controller and thereby control the 
+drone.\\
 The combination of flight controller and on-board companion computer will in 
 the following be called \textit{control hardware}.\\
 There are many types of different flight controllers available commercially.
@@ -117,9 +128,9 @@ supporting computer.
 The latter is implemented as \ac{HAT} specifically designed for a Raspberry 
 Pi.
 Thus, it does not include an own \ac{CPU} but uses the Raspberry Pis's 
-resources to perform flight relevant calculations.
-
-
+resources to perform flight relevant calculations.\\
+A detailed comparison between both flight controllers is given in 
+\autoref{table:4_flight_cotroller_cmp}.
 \begin{table}[h!]
 \centering
 \begin{tabular}[c]{|p{4cm}||p{4cm}|p{4cm}|}
@@ -129,13 +140,20 @@ resources to perform flight relevant calculations.
 Criteria & PixHawk & Navio2\\
 \hline
 \hline
-Processor & TBD & TBD\\
+Processor & ARM Cortex M4 with FPU / 32-bit co-processor & Depends on Raspberry
+Pi version\\
 \hline
-Included sensors & TBD & TBD\\
+Sensors & ST Micro 16-bti gyroscope, ST Micro 14-bit accelerometer, MEAS
+barometer & MPU9250 9DOF IMU, LSM9DS1 9DOF IMU, MS5611 Barometer, U-blox M8N 
+Glonass/\acs{GPS}/Beidou\\
 \hline
-Ports & TBD & TBD\\
+Interfaces & UART, Spektrum DSM, PPM / S.BUS input, I2C, SPI, CAN, USB, 3.3V 
+and 6.6V ADC input, 8 \acs{PWM} outputs, 6 Auxiliary outputs & UART, I2C, ADC, PPM / 
+S.BUS input, 14 \acs{PWM} outputs\\
 \hline
-Other & Failsafe options (e.g. extra power supply, GPS, etc.) & None\\
+Dimensions\newline(W x H x L) in mm & $50 \times 15.5 \times 81.5$ & $55 \times 65$\\ 
+\hline
+Other & Failsafe options (e.g. extra power supply, \acs{GPS}, etc.) & None\\
 \hline
 Price (Eur.) & TBD & TBD\\
 \hline
@@ -144,3 +162,70 @@ Price (Eur.) & TBD & TBD\\
 Navio2 flight controller.}
 \label{table:4_flight_cotroller_cmp}
 \end{table}
+
+\noindent As can be seen, both flight controllers offer different interfaces 
+to connect additional hardware.
+Moreover, both systems include sensors, mostly to gather information about 
+drone's current position and inertia.
+Here, the Navio2 even offers more sensors, as it already includes a \ac{GPS} 
+sensor, while the PixHawk relies on an external one.\\\\
+\noindent For this project, the PixHawk was chosen over the Navio2 mainly for 
+three reasons.
+First, it is on the market for a long time already and thus have a large 
+community support.
+Secondly, as it is an independent system, a failure of the companion computer 
+will not lead to a crash.
+Lastly, it allows for a wide range of companion computers, while the Navio2 
+can only interoperate with a Raspberry Pi.\\
+Furthermore, the mentioned considerations lead to easy rapid prototyping 
+approaches, as the drone can be manually flown without a companion computer in
+a first implementation.
+
+\subsection{Hardware assembly}\label{subsec:4_hw_setup}
+In the following, a high-level overview of the quadcopters' hardware setup is 
+given.
+The general wiring is shown and explained before a short introduction of some 
+important communication protocols is given.
+
+\subsection*{General wiring}
+In the following \autoref{fig:4_general_wiring} the general wiring layout is 
+shown.
+The whole system is powered from one power source only.
+\begin{figure}[!h]
+    \centering
+    \includegraphics[scale=0.5]{general_wiring.pdf}
+    \caption[General Wiring]{General wiring of the hardware setup.\\
+    Power connections are labeled red, 
+    Blue connections are used for \ac{PWM} signals, 
+    Green connections are serial connections, 
+    orange connections are more specifically serial UART connections.}
+    \label{fig:4_general_wiring}
+\end{figure}
+\FloatBarrier
+\noindent This results in some challenges in providing the correct voltage for
+each connected device.
+In the current setup this task is taken over by three devices.
+The \ac{PM} is directly connected to the battery.
+It transfers the battery's voltage to the \ac{PDB} and a lower 5V voltage to 
+the PixHawk flight controller.
+The \ac{PDB} itself is a parallel circuit, thus providing the same voltage 
+(battery voltage) to each output.
+The third device is a \ac{BEC} which is directly connected 
+to the \ac{PDB} and delivers a constant 5V output. 
+This can be used to power a companion computer such as a RaspberryPi.\\
+All other required peripherals are powered by the PixHawk flight controller 
+itself.
+The main peripherals used in this project are a telemetry module which is used
+for communication with a ground station and a \ac{GPS} module used for 
+improving the drones capabilities to follow a defined trajectory, which is
+specifically useful for auto-return~and landing features.
+Two more peripherals, a buzzer to output audio warning signals and a manual
+kill switch which can immediately stop all four motors, are installed mainly 
+for safety reasons.\\
+The hardware components that actually control the motor rotation speeds, 
+the \acp{ESC}, are connected to the \ac{PDB} for power supply as well as to 
+the flight controller that calculates the correct rotation speeds based on the
+wanted flight maneuvers and outputs a \ac{PWM} signal for each motor.\\
+The presented overall wiring is rather complex but allows relying on one power 
+source only instead of using multiple power sources for flight hardware and
+control hardware including peripherals respectively.
