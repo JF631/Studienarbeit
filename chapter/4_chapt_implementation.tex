@@ -206,26 +206,67 @@ The whole system is powered from one power source only.
 each connected device.
 In the current setup this task is taken over by three devices.
 The \ac{PM} is directly connected to the battery.
-It transfers the battery's voltage to the \ac{PDB} and a lower 5V voltage to 
+It transfers the battery's voltage to the \ac{PDB} and a lower 5V voltage to
 the PixHawk flight controller.
-The \ac{PDB} itself is a parallel circuit, thus providing the same voltage 
+The \ac{PDB} itself is a parallel circuit, thus providing the same voltage
 (battery voltage) to each output.
-The third device is a \ac{BEC} which is directly connected 
-to the \ac{PDB} and delivers a constant 5V output. 
+The third device is a \ac{BEC} which is directly connected
+to the \ac{PDB} and delivers a constant 5V output.
 This can be used to power a companion computer such as a RaspberryPi.\\
-All other required peripherals are powered by the PixHawk flight controller 
+All other required peripherals are powered by the PixHawk flight controller
 itself.
 The main peripherals used in this project are a telemetry module which is used
-for communication with a ground station and a \ac{GPS} module used for 
+for communication with a ground station and a \ac{GPS} module used for
 improving the drones capabilities to follow a defined trajectory, which is
 specifically useful for auto-return~and landing features.
 Two more peripherals, a buzzer to output audio warning signals and a manual
-kill switch which can immediately stop all four motors, are installed mainly 
+kill switch which can immediately stop all four motors, are installed mainly
 for safety reasons.\\
-The hardware components that actually control the motor rotation speeds, 
-the \acp{ESC}, are connected to the \ac{PDB} for power supply as well as to 
+The hardware components that actually control the motor rotation speeds,
+the \acp{ESC}, are connected to the \ac{PDB} for power supply as well as to
 the flight controller that calculates the correct rotation speeds based on the
 wanted flight maneuvers and outputs a \ac{PWM} signal for each motor.\\
-The presented overall wiring is rather complex but allows relying on one power 
+The presented overall wiring is rather complex but allows relying on one power
 source only instead of using multiple power sources for flight hardware and
 control hardware including peripherals respectively.
+
+\subsection*{Communication between components}\label{subsec:4_comm}
+The drone setup needs hardware components to communicate with each other in 
+order to transfer control signals from either the companion computer or from
+the ground station to the flight controller.
+Even if both options origin from different sources, they use the same
+device-to-device communication protocol.
+The protocol used for this purpose is the \textit{UART} protocol, which is
+acronym for universal asynchronous receiver / transmitter protocol.
+It is based on a serial, full duplex connection using six connections.
+The connection layout is shown in \autoref{fig:4_uart_wiring},
+\begin{figure}[!h]
+    \centering
+    \includegraphics[scale=0.8]{uart_wiring.pdf}
+    \caption[UART wiring]{UART wiring}
+    \label{fig:4_uart_wiring}
+\end{figure}
+\FloatBarrier
+\noindent where RTS / CTS denote Ready to send and Clear to send.
+RX / TX represent the actual data receiving and sending connections
+respectively.\\
+
+\noindent UART transfers data using data frames with minimal overhead.
+A typical UART frame consists of just a start bit, data bits, a parity bit and
+a stop bit.
+\autoref{fig:4_uart_frame} visualizes such a data frame. 
+\begin{figure}[!h]
+    \centering
+    \includegraphics[scale=0.8]{uart_frame.pdf}
+    \caption[UART data frame]{Exmple of an UART data frame. The blue marked
+    area is the actual data part that is transmitted.}
+    \label{fig:4_uart_frame}
+\end{figure}
+\FloatBarrier
+\noindent The shown UART data frame includes 5 data bits, however, the amount
+can vary between 5 and 9.
+Moreover, the included even parity bit is optional.
+The idle state is set to a voltage that represents HIGH level on purpose, so
+that any connection failure is easily detectable.
+UART can work with any voltages to denote HIGH and LOW levels.
+In the quadcopter setup HIGH is represented by 5V and LOW by GND.
