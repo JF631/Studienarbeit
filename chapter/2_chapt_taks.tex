@@ -1,0 +1,48 @@
+\graphicspath{{./figures/}}
+\chapter{Tasks}
+This chapter provides an overview over all tasks that are approached in this
+project.
+Hardware related tasks are listed as well as software related tasks.
+Each main task is divided into several sub-tasks.
+
+\begin{description}
+    \item[Task 1] Develop a platform independent computer software to analyze 
+    pre-recorded long-jump videos.
+    \begin{enumerate}
+        \item Integrate a body detection system.
+        \item Define an analysis output standard.
+        \item Implement a \acs*{GUI} to visualize analysis results.
+    \end{enumerate}
+    \item[Task 2] Build a quadcopter as hardware companion for recording 
+    long-jump videos. This specifically requires a camera as well as several
+    sensors for navigation.
+    \begin{enumerate}
+        \item Select hardware components according defined criteria.
+        \item Build a flying quadcopter that is controllable from a ground.
+        station
+        \item extend the quadcopter with a companion computer and a compatible
+        camera to live stream videos.
+        \item test the camera accuracy.
+    \end{enumerate}
+    \item[Task 3] Implement a software that allows to control the drone from a
+    ground station.
+    \begin{enumerate}
+        \item Set up a wireless connection to the quadcopter.
+        \item Define a communication protocol.
+        \item Integrate the control mechanism in the \acs*{GUI}.
+        \item Integrate a start measurement like mechanism.
+    \end{enumerate}
+    \item[Task 4] Develop a software to handle the incoming video livestream.
+    \begin{enumerate}
+        \item Establish a connection to the on-board companion computer.
+        \item Display the video frames in the \acs*{GUI}.
+        \item Offer the option for a rudimentary live analysis.
+    \end{enumerate}
+    \item[Task 5] Develop a software that can control the drone autonomously.
+    \begin{enumerate}
+        \item Establish between an on-board companion computer and PixHawk
+        flight controller.
+        \item Implement an on-board body detection system.
+        \item Develop an auto-follow like controlling feature. 
+    \end{enumerate}
+\end{description}
