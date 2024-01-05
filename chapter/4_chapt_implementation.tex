@@ -4,6 +4,22 @@ This chapter focuses on the overall project's implementation.
 It mainly covers the four parts hardware assembly, long jump analysis,
 drone control and their consolidation into one \ac{GUI}.
 
+\section{Jump analysis Software}\label{sec:4_analysis_software}
+The ground station software is responsible for performing a complete jump
+analysis.
+The analysis is performed according to the following set of fixed criteria:
+\begin{itemize}
+    \item Knee angles
+    \item Arm angles
+    \item Foot height
+    \item Hip height
+\end{itemize}
+Apart from the last parameter, all evaluations are performed for the left and
+the right body side separately.\\
+Moreover, the developed software can detect the takeoff video frame based on
+video input only.\\
+This section... 
+
 \section{Hardware setup}\label{sec:4_hardware}
 In order to capture high-quality video recordings that cover a complete long 
 jump, from the first step all the way to the landing, a drone is used to fly
