@@ -4,6 +4,60 @@ This chapter focuses on the overall project's implementation.
 It mainly covers the four parts hardware assembly, long jump analysis,
 drone control and their consolidation into one \ac{GUI}.
 
+\section{Long-jump analysis software}\label{sec:4_analysis_software}
+In order to analyze recorded long jump videos a ground station software is
+developed.
+Generally, the analysis is performed regarding the following set of
+parameters:
+\begin{itemize}
+    \item left / right knee angle
+    \item left / right arm angle
+    \item takeoff angle
+    \item left / right foot position
+    \item hip height
+\end{itemize}
+These parameters are tracked over the whole jump, beginning with the run-up
+throughout the takeoff until the landing.\\
+\autoref{fig:4_long_jump_sketch} shows a detailed overview over the video data
+that can be analyzed by the software.
+\begin{figure}[!h]
+    \centering
+    \includegraphics[scale=0.7]{long_jump_sketch.pdf}
+    \caption[Long jump parameter overview]{General overview of the parameters
+    that are important in a long jump.\\
+    Parameters that can be analyzed by the software are marked
+    \textcolor{red}{red}}
+    \label{fig:4_long_jump_sketch}
+\end{figure}
+\FloatBarrier
+As the takeoff is (one of) the most important phases in a long jump, it is
+important to be able to detect the takeoff in a video.
+Such a takeoff detection is developed alongside the above-mentioned parameter 
+detection- and calculation.\\
+This section will first introduce the body key point detection process that
+is basis for all following calculations.
+Afterwards, an algorithm for an automatic takeoff frame detection based on a
+video input is implemented.
+
+\subsection{Detecting body key points}\label{subsec:4_body_keypoint_detection}
+
+\subsection{Automatic takeoff frame detection}\label{subsec:4_takeoff_detection}
+The takeoff phase is the last phase in which an athlete is able to actively
+influence the most important jumping conditions.
+Within this short\footnote{0.1s - 0.2s\cite{mechanical_power_long_jump}} time
+period the initial kinetic run-up energy is transformed into jumping energy.
+Especially the velocity vector of an athletes' \ac{CM} changes its direction
+in the moment of the takeoff.
+As the forces produced during the takeoff strongly influence the resulting
+jumping distance, it is important to understand its dynamics.\\
+Due to the short time period a takeoff takes, it can be difficult to detect
+the takeoff frame in a long jump video in order to be able to analyze the
+exact pre-jump conditions.\\\\
+In order to allow for an on-field jumping analysis, a quick takeoff frame
+detection becomes even more crucial.
+Thus, an algorithm that can automatically detect the takeoff frame in a video
+input is implemented in the following.    
+
 \section{Hardware setup}\label{sec:4_hardware}
 In order to capture high-quality video recordings that cover a complete long 
 jump, from the first step all the way to the landing, a drone is used to fly
