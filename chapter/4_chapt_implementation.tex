@@ -44,7 +44,7 @@ video input is implemented.
 \subsection{Automatic takeoff frame detection}\label{subsec:4_takeoff_detection}
 The takeoff phase is the last phase in which an athlete is able to actively
 influence the most important jumping conditions.
-Within this short\footnote{0.1s - 0.2s\cite{mechanical_power_long_jump}} time
+Within this short\footnote{0.1s \- 0.2s\cite{mechanical_power_long_jump}} time
 period the initial kinetic run-up energy is transformed into jumping energy.
 Especially the velocity vector of an athletes' \ac{CM} changes its direction
 in the moment of the takeoff.
@@ -56,7 +56,43 @@ exact pre-jump conditions.\\\\
 In order to allow for an on-field jumping analysis, a quick takeoff frame
 detection becomes even more crucial.
 Thus, an algorithm that can automatically detect the takeoff frame in a video
-input is implemented in the following.    
+input is implemented in the following.\\\\
+In order to develop an automatic takeoff frame detection, the left and right
+foot position as well as the position of the \ac{CM} were analyzed.
+The results are shown in \autoref{fig:4_angles_height_plot}.
+\begin{figure}[h!]
+    \begin{subfigure}[b]{0.5\textwidth}
+        \includegraphics*[scale=0.45]{jump_runup_poor_start.png}
+        \label{subfig:runup_jump_landing_height}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.5\textwidth}
+        \includegraphics*[scale=0.45]{jump_runup_poor_start_angles.png}
+        \label{subfig:runup_jump_landing_angles}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.5\textwidth}
+        \includegraphics*[scale=0.45]{jump_no_runup.png}
+        \label{subfig:no_runup_height}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.5\textwidth}
+        \includegraphics*[scale=0.45]{jump_no_runup_angles.png}
+        \label{subfig:no_runup_angles}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.5\textwidth}
+        \includegraphics*[scale=0.45]{jump_runup_poor.png}
+        \label{subfig:runup_jump_height}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.5\textwidth}
+        \includegraphics*[scale=0.45]{jump_runup_poor_angles.png}
+        \label{subfig:runup_jump_angles}
+    \end{subfigure}
+    \caption[Analyzed jumping parameters over time]{Analyzed and calculated
+    jumping parameters over time.\\
+    Left: Analyzed left / right foot height and hip height.\\
+    Right: Recorded knee angles over time}
+    \label{fig:4_angles_height_plot}
+\end{figure}
+\FloatBarrier
 
 \section{Hardware setup}\label{sec:4_hardware}
 In order to capture high-quality video recordings that cover a complete long 
