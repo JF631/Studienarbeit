@@ -26,7 +26,8 @@ that can be analyzed by the software.
     \caption[Long jump parameter overview]{General overview of the parameters
     that are important in a long jump.\\
     Parameters that can be analyzed by the software are marked
-    \textcolor{red}{red}}
+    \textcolor{red}{red}.\\
+    The \textcolor{cyan}{blue points} indicate phase transition points.}
     \label{fig:4_long_jump_sketch}
 \end{figure}
 \FloatBarrier
@@ -41,28 +42,51 @@ video input is implemented.
 
 \subsection{Detecting body key points}\label{subsec:4_body_keypoint_detection}
 
+\subsection{Calculating analysis parameters}\label{subsec:4_calc_params}
+
 \subsection{Automatic takeoff frame detection}\label{subsec:4_takeoff_detection}
-The takeoff phase is the last phase in which an athlete is able to actively
+Generally, a long jump can be divided into three different phases, namely
+approach, takeoff, jump and landing.
+In \autoref{fig:4_long_jump_sketch} an overview over the phases is given,
+where the takeoff phase is represented by the first phase changing point.\\
+Each phase demands different requirements from an athlete, however, the
+takeoff phase is the last phase in which an athlete is able to actively
 influence the most important jumping conditions.
 Within this short\footnote{0.1s \- 0.2s\cite{mechanical_power_long_jump}} time
 period the initial kinetic run-up energy is transformed into jumping energy.
 Especially the velocity vector of an athletes' \ac{CM} changes its direction
-in the moment of the takeoff.
+in the moment of the takeoff, as illustrated in
+\autoref{fig:4_long_jump_sketch}.
 As the forces produced during the takeoff strongly influence the resulting
 jumping distance, it is important to understand its dynamics.\\
 Due to the short time period a takeoff takes, it can be difficult to detect
 the takeoff frame in a long jump video in order to be able to analyze the
 exact pre-jump conditions.\\\\
-In order to allow for an on-field jumping analysis, a quick takeoff frame
-detection becomes even more crucial.
-Thus, an algorithm that can automatically detect the takeoff frame in a video
-input is implemented in the following.\\\\
-In order to develop an automatic takeoff frame detection, the left and right
-foot position as well as the position of the \ac{CM} were analyzed.
-The results are shown in \autoref{fig:4_angles_height_plot}.
+However, especially to allow for an on-field jumping analysis, a quick takeoff
+frame detection is even more crucial.
+Thus, an algorithm that can automatically detect the takeoff frame in a long
+jump video is implemented in the following.\\\\
+As the automatic takeoff frame detection is based on the parameters listed in
+\autoref{sec:4_analysis_software}, the left and right
+foot position as well as the position of the \ac{CM} were analyzed in
+pre-recorded long jump videos of male long jumpers at different professional
+levels reaching from hobby- to olympian athlete.
+Moreover, the videos used differ in their length and quality as well as in the
+jumping part they show (e.g.\ video 2 does not show the full run-up).
+The results of three exemplary video analysis are shown in
+\autoref{fig:4_angles_height_plot}.
+In order to develop an accurate takeoff point detection, the takeoff frame was
+first manually selected (marked as \textcolor{blue}{blue vertical line} for
+each analysis \autoref{fig:4_angles_height_plot}).\\
+The presented data has not been cleaned up in any way.
+As can be seen especially in the first and last analysis, the position and
+angle data is not accurate due to body key point detection inaccuracies.
+However, afterwards the key points are detected correctly during the approach.\\
+
 \begin{figure}[h!]
     \begin{subfigure}[b]{0.5\textwidth}
         \includegraphics*[scale=0.45]{jump_runup_poor_start.png}
+        \captionsetup{justification=centering, singlelinecheck=false, labelfont=bf}
         \label{subfig:runup_jump_landing_height}
     \end{subfigure}
     \begin{subfigure}[b]{0.5\textwidth}
@@ -88,11 +112,34 @@ The results are shown in \autoref{fig:4_angles_height_plot}.
     \end{subfigure}
     \caption[Analyzed jumping parameters over time]{Analyzed and calculated
     jumping parameters over time.\\
-    Left: Analyzed left / right foot height and hip height.\\
-    Right: Recorded knee angles over time}
+    \textbf{Left column}: Analyzed left / right foot height and hip height.\\
+    \textbf{Right column}: Calculated knee angles over time.\\
+    The \textcolor{blue}{vertical lines} represent the visually selected
+    takeoff point.\\
+    \textbf{First row}: full run-up, full jump. \textbf{Second Row}: short 
+    run-up, full jump.
+    \textbf{Third row}: full run-up, full jump, poor video quality}
     \label{fig:4_angles_height_plot}
 \end{figure}
 \FloatBarrier
+\noindent In each analysis the left and right foot positions as well as the
+according knee angles interchange from step to step.
+The relative \ac{CM} height remains on the same level during the approach.\\
+Behind the takeoff point, the relative hip- and foot heights increase quickly
+until the maximal height is reached and the landing phase starts.
+Moreover, the swing legs' foot height increases faster in comparison to the
+jumping legs' foot height as the latter one stays on the ground longer to
+introduce the jump.\\
+In the moment of the takeoff, the knee angle of the jumping leg is above 170
+degree, meaning the jumping leg is fully extended.
+The swing legs' knee angle varies in the shown examples around 100 degree.\\\\
+The visually most significant change which happens in the moment of the
+takeoff and is therefore the most meaningful measured parameter that indicates
+the takeoff is the change of height of the \ac{CM}.
+Thus, the automatic takeoff detection is developed based on this parameter.\\
+
+The parameter
+
 
 \section{Hardware setup}\label{sec:4_hardware}
 In order to capture high-quality video recordings that cover a complete long 
