@@ -19,18 +19,7 @@ parameters:
 These parameters are tracked over the whole jump, beginning with the run-up
 throughout the takeoff until the landing.\\
 \autoref{fig:4_long_jump_sketch} shows a detailed overview over the video data
-that can be analyzed by the software.
-\begin{figure}[!h]
-    \centering
-    \includegraphics[scale=0.7]{long_jump_sketch.pdf}
-    \caption[Long jump parameter overview]{General overview of the parameters
-    that are important in a long jump.\\
-    Parameters that can be analyzed by the software are marked
-    \textcolor{red}{red}.\\
-    The \textcolor{cyan}{blue points} indicate phase transition points.}
-    \label{fig:4_long_jump_sketch}
-\end{figure}
-\FloatBarrier
+that can be analyzed by the software.\\
 As the takeoff is (one of) the most important phases in a long jump, it is
 important to be able to detect the takeoff in a video.
 Such a takeoff detection is developed alongside the above-mentioned parameter 
@@ -39,6 +28,17 @@ This section will first introduce the body key point detection process that
 is basis for all following calculations.
 Afterwards, an algorithm for an automatic takeoff frame detection based on a
 video input is implemented.
+\begin{figure}[!h]
+    \centering
+    \includegraphics[scale=0.6]{long_jump_sketch.pdf}
+    \caption[Long jump parameter overview]{General overview of the parameters
+    that are important in a long jump.\\
+    Parameters that can be analyzed by the software are marked
+    \textcolor{red}{red}.\\
+    The \textcolor{cyan}{blue points} indicate phase transition points.}
+    \label{fig:4_long_jump_sketch}
+\end{figure}
+\FloatBarrier
 
 \subsection{Detecting body key points}\label{subsec:4_body_keypoint_detection}
 
@@ -46,7 +46,7 @@ video input is implemented.
 
 \subsection{Automatic takeoff frame detection}\label{subsec:4_takeoff_detection}
 Generally, a long jump can be divided into three different phases, namely
-approach, takeoff, jump and landing.
+approach, jump and landing.
 In \autoref{fig:4_long_jump_sketch} an overview over the phases is given,
 where the takeoff phase is represented by the first phase changing point.\\
 Each phase demands different requirements from an athlete, however, the
@@ -57,8 +57,9 @@ period the initial kinetic run-up energy is transformed into jumping energy.
 Especially the velocity vector of an athletes' \ac{CM} changes its direction
 in the moment of the takeoff, as illustrated in
 \autoref{fig:4_long_jump_sketch}.
-As the forces produced during the takeoff strongly influence the resulting
-jumping distance, it is important to understand its dynamics.\\
+The forces produced during the takeoff strongly influence the resulting
+jumping distance. 
+Thus, it is important to understand its dynamics.\\
 Due to the short time period a takeoff takes, it can be difficult to detect
 the takeoff frame in a long jump video in order to be able to analyze the
 exact pre-jump conditions.\\\\
@@ -81,7 +82,24 @@ each analysis \autoref{fig:4_angles_height_plot}).\\
 The presented data has not been cleaned up in any way.
 As can be seen especially in the first and last analysis, the position and
 angle data is not accurate due to body key point detection inaccuracies.
-However, afterwards the key points are detected correctly during the approach.\\
+However, afterwards the key points are detected correctly during the approach.\\\\
+In each analysis the left and right foot positions as well as the
+according knee angles interchange from step to step.
+The relative \ac{CM} height remains on the same level during the approach.\\
+Behind the takeoff point, the relative hip- and foot heights increase quickly
+until the maximal height is reached and the landing phase starts.
+Moreover, the swing legs' foot height increases faster in comparison to the
+jumping legs' foot height as the latter one stays on the ground longer to
+introduce the jump.\\
+In the moment of the takeoff, the knee angle of the jumping leg is above 170
+degree, meaning the jumping leg is fully extended.
+The swing legs' knee angle varies in the shown examples around 100 degree.\\\\
+The visually most significant change which happens in the moment of the
+takeoff and is therefore the most meaningful measured parameter that indicates
+the takeoff is the change of height of the \ac{CM}.
+Thus, the automatic takeoff detection is developed based on this parameter.\\
+First, a mathematical description of the \ac{CM} position during the jump is
+implemented.
 
 \begin{figure}[h!]
     \begin{subfigure}[b]{0.5\textwidth}
@@ -122,23 +140,140 @@ However, afterwards the key points are detected correctly during the approach.\\
     \label{fig:4_angles_height_plot}
 \end{figure}
 \FloatBarrier
-\noindent In each analysis the left and right foot positions as well as the
-according knee angles interchange from step to step.
-The relative \ac{CM} height remains on the same level during the approach.\\
-Behind the takeoff point, the relative hip- and foot heights increase quickly
-until the maximal height is reached and the landing phase starts.
-Moreover, the swing legs' foot height increases faster in comparison to the
-jumping legs' foot height as the latter one stays on the ground longer to
-introduce the jump.\\
-In the moment of the takeoff, the knee angle of the jumping leg is above 170
-degree, meaning the jumping leg is fully extended.
-The swing legs' knee angle varies in the shown examples around 100 degree.\\\\
-The visually most significant change which happens in the moment of the
-takeoff and is therefore the most meaningful measured parameter that indicates
-the takeoff is the change of height of the \ac{CM}.
-Thus, the automatic takeoff detection is developed based on this parameter.\\
 
-The parameter
+\subsubsection{Regression}
+As the takeoff point detection is based on linear and quadratic regression,
+both are briefly introduced in the following.
+Regression generally describes the approximation of a polynomial function to
+fit a given dataset.
+The dataset that is tried to be approximated in this case is the height of the
+\ac{CM}.
+The dataset can be expressed as (T, H), where H holds the heights of the
+\ac{CM} and T holds the related time points.
+As the input is a video, T represents a simple vector holding the
+video's frame numbers.
+For the following steps it is helpful to express T and H as column vectors:
+\begin{equation}
+    \vec{t} = \begin{bmatrix}
+        1\\
+        2\\
+        \vdots\\
+        n
+    \end{bmatrix}
+        \quad\text{and}\quad
+    \vec{h} = \begin{bmatrix}
+        h_1\\
+        h_2\\
+        \vdots\\
+        h_n
+    \end{bmatrix}
+\end{equation}
+where n is the total number of video frames and $h_i$ is the $i\--th$ recorded
+height of the \ac{CM}.\\
+Taking the \ac{CM} in \autoref{fig:4_angles_height_plot} into consideration,
+a whole jump can hardly be fitted with a single polynomial function.
+However, as shown in \autoref{fig:4_long_jump_sketch}, a long jump consists of
+multiple phases.
+The runup phase includes all frames in the interval $[0, PT_0[$, the jumping
+phase is covered by the frames in range $[PT_0, PT_1[$ and the landing phase
+is shown by the frames in the interval $[PT_1, n[$, where $PT_0$ defines the
+first Phase Transition point (the takeoff) and $PT_1$ the point at which the
+landing phase starts.
+Each phase by itself can be approximated with a polynomial function.
+The approach and the landing can be fitted using a linear expression.\\
+Thus, two linear regressions are performed separately to find two expressions
+of the form
+\begin{equation}\label{eq:linear_function}
+    \\y_i = \beta_0 + \beta_1t_i + \epsilon_i
+    \quad\quad
+    i = \text{start},\ \dots\ ,\text{end}
+\end{equation}
+where $\beta_0$ and $\beta_1$ are the coefficients that need to be found.
+start and end represent the first and last frame index that should be
+considered in the linear regression.
+For the approach phase this leads to $start = 0$ and $end = TP_0 - 1$, the
+landing phase is accordingly represented by $start = TP_1$ and $end = n - 1$.\\
+\autoref{eq:linear_function} can also be expressed as matrix equation:
+\begin{equation}\label{eq:linear_reg_matrix}
+    \begin{bmatrix}
+        y_0\\
+        y_1\\
+        \vdots\\
+        y_r\\
+    \end{bmatrix}
+    =
+    \begin{bmatrix}
+        1 & t_{start}\\
+        1 & t_{start + 1}\\
+        \vdots\\
+        1 & t_{end}
+    \end{bmatrix}
+    \begin{bmatrix}
+        \beta_0\\
+        \beta_1
+    \end{bmatrix}
+    +
+    \begin{bmatrix}
+        \epsilon_0\\
+        \epsilon_1
+    \end{bmatrix}
+\end{equation}
+where $r = end - start$.
+This can be written in short form as:
+\[
+    \vec{y} = T\vec{\beta} + \vec{\epsilon}    
+\]
+Now, the vector $\vec{\beta}$ needs to be found that minimizes the sum of
+errors $E_{SSE}$ between the measured \ac{CM} height $h_i \in \vec{h}$ and the
+fitted polynomial $y_i$ at time step i.
+To measure the error, the \ac{SSE} is used:
+\begin{equation}
+    E_{SSE} = \sum_{i=start}^{end} \epsilon_i^2 = \sum_{i=start}^{end} (h_i - y_i)^2
+\end{equation}
+Using the simple linear expression from \autoref{eq:linear_function},
+following error function is found:
+\begin{equation}
+    E_{SSE} = \sum_{i=start}^{end} (h_i - \beta_0 - \beta_1i)^2
+\end{equation}
+By using the matrix notation introduced in \autoref{eq:linear_reg_matrix},
+the equation above can be written in matrix notation as well:
+\begin{equation}
+    E_{SSE} = (T\vec{\beta} - \vec{h})^T(T\vec{\beta} - \vec{h})
+\end{equation}
+As $\vec{\beta}$ should minimize $E_{SSE}$, the minimum of $E_{SSE}$ is
+needed, which can be found by solving following equation:
+\begin{equation}\label{eq:gradient_linear_case}
+    \nabla_{\vec{\beta}}E_{SSE} = \nabla_{\vec{\beta}}(T\vec{\beta} - \vec{h})^T(T\vec{\beta} - \vec{h}) = 0
+\end{equation}
+where $\nabla_{\vec{\beta}}$ denotes the gradient with respect to $\vec{\beta}$.\\
+The coefficients can then easily be found by solving
+\autoref{eq:gradient_linear_case} for $\vec{\beta}$, which yields the 
+following normal equation:
+\begin{equation}\label{eq:normal_equation}
+    \vec{\beta} = (T^T T)^{-1}(T^T\vec{h})
+\end{equation}
+that especially requires $(T^{T} T)$ to be invertible.
+A proof of \autoref{eq:normal_equation} can be found in
+\cite{proof_linear_regression_mat}.\\
+As mentioned, this process is performed twice to find a linear approximation
+for the approach and the landing phase of an athletes' \ac{CM} respectively.\\\\
+The jumping phase cannot be approximated with a linear polynomial.
+However, as can be seen in \autoref{fig:4_angles_height_plot} after the marked
+takeoff point, the curve of the \ac{CM} height can be approximated using a
+parabola.
+Thus, quadratic regression is used to find a curve that describes the height
+of the \ac{CM} during the jumping phase.
+Instead of looking for a linear polynomial like in
+\autoref{eq:linear_function}, a second order polynomial of the form:
+\begin{equation}\label{eq:quadratic_function}
+    \\y_i = \beta_0 + \beta_1t_i + \beta_2t_i^2 + \epsilon_i
+    \quad\quad
+    i = PT_0,\ \dots\ ,PT_1 - 1
+\end{equation}
+needs to be found.\\
+The following steps are equal to the linear regression shown above.
+Thus, only the differences are shown in detail.
+
 
 
 \section{Hardware setup}\label{sec:4_hardware}
