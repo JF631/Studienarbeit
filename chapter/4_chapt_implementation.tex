@@ -205,7 +205,7 @@ landing phase is accordingly represented by $start = TP_1$ and $end = n - 1$.\\
     \begin{bmatrix}
         1 & t_{start}\\
         1 & t_{start + 1}\\
-        \vdots\\
+        \vdots & \vdots\\
         1 & t_{end}
     \end{bmatrix}
     \begin{bmatrix}
@@ -237,7 +237,7 @@ following error function is found:
 \end{equation}
 By using the matrix notation introduced in \autoref{eq:linear_reg_matrix},
 the equation above can be written in matrix notation as well:
-\begin{equation}
+\begin{equation}\label{eq:sse_matrix}
     E_{SSE} = (T\vec{\beta} - \vec{h})^T(T\vec{\beta} - \vec{h})
 \end{equation}
 As $\vec{\beta}$ should minimize $E_{SSE}$, the minimum of $E_{SSE}$ is
@@ -263,18 +263,60 @@ takeoff point, the curve of the \ac{CM} height can be approximated using a
 parabola.
 Thus, quadratic regression is used to find a curve that describes the height
 of the \ac{CM} during the jumping phase.
-Instead of looking for a linear polynomial like in
-\autoref{eq:linear_function}, a second order polynomial of the form:
+The second order polynomial that needs to be found is of the form:
 \begin{equation}\label{eq:quadratic_function}
     \\y_i = \beta_0 + \beta_1t_i + \beta_2t_i^2 + \epsilon_i
     \quad\quad
     i = PT_0,\ \dots\ ,PT_1 - 1
 \end{equation}
-needs to be found.\\
+$PT_0\ \text{and}\ PT_1$ are the phase transition points shown in
+\autoref{fig:4_long_jump_sketch}.
 The following steps are equal to the linear regression shown above.
-Thus, only the differences are shown in detail.
-
-
+Thus, only the differences are shown in detail.\\
+The T matrix in \autoref{eq:linear_reg_matrix} contains all the frame
+numbers as column vector.
+Because a linear relation was tried to be found to approximate the approach
+and  landing phase before, the T matrix as well only contained linear values.
+Now however, a quadratic relation needs to be found.
+Thus, the T matrix needs to be extended by one more column holding the
+quadratic frame numbers yielding following matrix equation:
+\begin{equation}
+    \begin{bmatrix}
+        y_0\\
+        y_1\\
+        \vdots\\
+        y_r\\
+    \end{bmatrix}
+    =
+    \begin{bmatrix}
+        1 & t_{PT_0} & t_{PT_0}^2\\
+        1 & t_{PT_0 + 1} & t_{PT_0 + 1}^2\\
+        \vdots & \vdots & \vdots\\
+        1 & t_{PT_1 - 1} & t_{PT_1 - 1}^2
+    \end{bmatrix}
+    \begin{bmatrix}
+        \beta_0\\
+        \beta_1\\
+        \beta_2
+    \end{bmatrix}
+    +
+    \begin{bmatrix}
+        \epsilon_0\\
+        \epsilon_1\\
+        \epsilon_2
+    \end{bmatrix}
+    = \vec{y} = T\vec{\beta} + \vec{\epsilon}
+\end{equation}
+where $r = PT_1 - 1 - PT_0$.
+The now following steps are equal to the linear case.
+To measure the error, the \ac{SSE} function is used again.
+As the matrix notation does not change, the following calculations are set-up
+equally to equations~\ref{eq:sse_matrix} to~\ref{eq:normal_equation}.
+The solution can again be analytically found by the normal equation
+\autoref{eq:normal_equation}:
+\[
+    \vec{\beta} = (T^T T)^{-1}(T^T\vec{h}) 
+\] 
 
 \section{Hardware setup}\label{sec:4_hardware}
 In order to capture high-quality video recordings that cover a complete long 
