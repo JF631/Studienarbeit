@@ -195,28 +195,34 @@ For the approach phase this leads to $start = 0$ and $end = TP_0 - 1$, the
 landing phase is accordingly represented by $start = TP_1$ and $end = n - 1$.\\
 \autoref{eq:linear_function} can also be expressed as matrix equation:
 \begin{equation}\label{eq:linear_reg_matrix}
+    \underbrace{
     \begin{bmatrix}
         y_0\\
         y_1\\
         \vdots\\
         y_r\\
-    \end{bmatrix}
+    \end{bmatrix}}_{\substack{\vec{y}}}
     =
+    \underbrace{
     \begin{bmatrix}
-        1 & t_{start}\\
-        1 & t_{start + 1}\\
+        1 & t_{\text{start}}\\
+        1 & t_{\text{start} + 1}\\
         \vdots & \vdots\\
-        1 & t_{end}
-    \end{bmatrix}
+        1 & t_{\text{end}}
+    \end{bmatrix}}_{\substack{\text{Design matrix} \\ T}}
+    \underbrace{
     \begin{bmatrix}
         \beta_0\\
         \beta_1
-    \end{bmatrix}
+    \end{bmatrix}}_{\substack{\text{Coefficients} \\ \text{vector} \\
+    \vec{\beta}}}
     +
+    \underbrace{
     \begin{bmatrix}
         \epsilon_0\\
         \epsilon_1
-    \end{bmatrix}
+    \end{bmatrix}}_{\substack{\text{Error} \\ \text{vector} \\
+    \vec{\epsilon}}}
 \end{equation}
 where $r = end - start$.
 This can be written in short form as:
@@ -273,50 +279,59 @@ $PT_0\ \text{and}\ PT_1$ are the phase transition points shown in
 \autoref{fig:4_long_jump_sketch}.
 The following steps are equal to the linear regression shown above.
 Thus, only the differences are shown in detail.\\
-The T matrix in \autoref{eq:linear_reg_matrix} contains all the frame
+The T matrix in \autoref{eq:linear_reg_matrix} contains all frame
 numbers as column vector.
 Because a linear relation was tried to be found to approximate the approach
 and  landing phase before, the T matrix as well only contained linear values.
 Now however, a quadratic relation needs to be found.
 Thus, the T matrix needs to be extended by one more column holding the
 quadratic frame numbers yielding following matrix equation:
-\begin{equation}
+\begin{equation}\label{eq:quadratic_reg_matrix}
+    \underbrace{
     \begin{bmatrix}
         y_0\\
         y_1\\
         \vdots\\
         y_r\\
-    \end{bmatrix}
+    \end{bmatrix}}_{\vec{y}}
     =
+    \underbrace{
     \begin{bmatrix}
         1 & t_{PT_0} & t_{PT_0}^2\\
         1 & t_{PT_0 + 1} & t_{PT_0 + 1}^2\\
         \vdots & \vdots & \vdots\\
         1 & t_{PT_1 - 1} & t_{PT_1 - 1}^2
-    \end{bmatrix}
+    \end{bmatrix}}_{T}
+    \underbrace{
     \begin{bmatrix}
         \beta_0\\
         \beta_1\\
         \beta_2
-    \end{bmatrix}
+    \end{bmatrix}}_{\vec{\beta}}
     +
+    \underbrace{
     \begin{bmatrix}
         \epsilon_0\\
         \epsilon_1\\
         \epsilon_2
-    \end{bmatrix}
-    = \vec{y} = T\vec{\beta} + \vec{\epsilon}
+    \end{bmatrix}}_{\vec{\epsilon}}
 \end{equation}
 where $r = PT_1 - 1 - PT_0$.
-The now following steps are equal to the linear case.
-To measure the error, the \ac{SSE} function is used again.
-As the matrix notation does not change, the following calculations are set-up
-equally to equations~\ref{eq:sse_matrix} to~\ref{eq:normal_equation}.
-The solution can again be analytically found by the normal equation
-\autoref{eq:normal_equation}:
+The error function which needs to be minimized can be set up just like in the
+linear case (\autoref{eq:sse_matrix}).
+Comparing \autoref{eq:linear_reg_matrix} and \autoref{eq:quadratic_reg_matrix}
+the only things that change are the number of coefficients (and thus the
+number of error terms) as well as the design matrix T, which holds one more
+column.
+The steps to determine the coefficients $\vec{\beta}$ are equal to the linear
+case in equations~\ref{eq:sse_matrix} to~\ref{eq:normal_equation}.
+$\vec{\beta}$ is then given by the same normal equation~
+\ref{eq:normal_equation} as in the linear case:
 \[
     \vec{\beta} = (T^T T)^{-1}(T^T\vec{h}) 
 \] 
+where $\vec{\beta}$ contains three coefficients $\beta_0$, $\beta_1$ and
+$\beta_2$ to approximate the jumping phase.
 
 \section{Hardware setup}\label{sec:4_hardware}
 In order to capture high-quality video recordings that cover a complete long 
