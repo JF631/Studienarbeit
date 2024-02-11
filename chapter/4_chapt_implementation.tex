@@ -64,7 +64,7 @@ Due to the short time period a takeoff takes, it can be difficult to detect
 the takeoff frame in a long jump video in order to be able to analyze the
 exact pre-jump conditions.\\\\
 However, especially to allow for an on-field jumping analysis, a quick takeoff
-frame detection is even more crucial.
+frame detection is crucial.
 Thus, an algorithm that can automatically detect the takeoff frame in a long
 jump video is implemented in the following.\\\\
 As the automatic takeoff frame detection is based on the parameters listed in
@@ -78,11 +78,13 @@ The results of three exemplary video analysis are shown in
 \autoref{fig:4_angles_height_plot}.
 In order to develop an accurate takeoff point detection, the takeoff frame was
 first manually selected (marked as \textcolor{blue}{blue vertical line} for
-each analysis \autoref{fig:4_angles_height_plot}).\\
+each analysis in \autoref{fig:4_angles_height_plot}).\\
 The presented data has not been cleaned up in any way.
-As can be seen especially in the first and last analysis, the position and
-angle data is not accurate due to body key point detection inaccuracies.
-However, afterwards the key points are detected correctly during the approach.\\\\
+This can especially be seen in the first and last analysis, in which the
+position and angle data is not accurate due to body key point detection
+inaccuracies.
+These inaccuracies however are not of great interest as the key points are
+detected correctly during the approach after a few frames.\\\\
 In each analysis the left and right foot positions as well as the
 according knee angles interchange from step to step.
 The relative \ac{CM} height remains on the same level during the approach.\\
@@ -98,8 +100,9 @@ The visually most significant change which happens in the moment of the
 takeoff and is therefore the most meaningful measured parameter that indicates
 the takeoff is the change of height of the \ac{CM}.
 Thus, the automatic takeoff detection is developed based on this parameter.\\
-First, a mathematical description of the \ac{CM} position during the jump is
-implemented.
+To approach the detection of the rapid change in the \ac{CM}s' vertical
+velocity, a mathematical description of its position during the jump is
+modelled.
 
 \begin{figure}[h!]
     \begin{subfigure}[b]{0.5\textwidth}
@@ -173,7 +176,13 @@ height of the \ac{CM}.\\
 Taking the \ac{CM} in \autoref{fig:4_angles_height_plot} into consideration,
 a whole jump can hardly be fitted with a single polynomial function.
 However, as shown in \autoref{fig:4_long_jump_sketch}, a long jump consists of
-multiple phases.
+multiple phases.\\
+This offers an opportunity to detect the takeoff.
+As mentioned before, the takeoff frame is defined as the point where the
+approach phase ends and the jumping phase starts, ($PT_0$ in
+\autoref{fig:4_long_jump_sketch}).
+Thus, if a mathematical expression can be found for each phase respectively,
+the takeoff frame is found implicitly.\\
 The runup phase includes all frames in the interval $[0, PT_0[$, the jumping
 phase is covered by the frames in range $[PT_0, PT_1[$ and the landing phase
 is shown by the frames in the interval $[PT_1, n[$, where $PT_0$ defines the
@@ -317,7 +326,7 @@ quadratic frame numbers yielding following matrix equation:
     \end{bmatrix}}_{\vec{\epsilon}}
 \end{equation}
 where $r = PT_1 - 1 - PT_0$.
-The error function which needs to be minimized can be set up just like in the
+The error function which needs to be minimized can be set equivalent to the
 linear case (\autoref{eq:sse_matrix}).
 Comparing \autoref{eq:linear_reg_matrix} and \autoref{eq:quadratic_reg_matrix}
 the only things that change are the number of coefficients (and thus the
@@ -331,7 +340,59 @@ $\vec{\beta}$ is then given by the same normal equation~
     \vec{\beta} = (T^T T)^{-1}(T^T\vec{h}) 
 \] 
 where $\vec{\beta}$ contains three coefficients $\beta_0$, $\beta_1$ and
-$\beta_2$ to approximate the jumping phase.
+$\beta_2$ to approximate the jumping phase.\\\\
+
+\noindent By using this linear- and quadratic regression approach, the whole
+jump can be modelled mathematically.
+However, in order to find the best fitting model, the phase changing points
+($PT_0$ and $PT_1$ in \autoref{fig:4_long_jump_sketch}) need to be determined.
+This can be done by minimizing the overall error $E_{total}$, which is defined
+as the sum of regression errors resulting from the three independent
+regressions performed (one per jumping phase):
+
+\begin{equation}
+    E_{total} = E_{approach} + E_{jump} + E_{landing}
+\end{equation}
+
+\noindent $E_{total}$ can be minimized by using a brute-force approach.
+For each possible combination of phase transition points, two linear
+regressions (representing approach and landing) and one quadratic regression
+(representing the jumping phase) are performed and their individual errors
+given by \autoref{eq:sse_matrix} are summed up.
+The combination of phase transition points that leads to the minimal
+$E_{total}$ is then considered as the optimal model to fit the overall jump.
+As the found phase transition points directly represent their corresponding
+frame numbers, the takeoff frame is directly given by the first phase
+transition point.
+
+\begin{algorithm}
+    \caption{takeoff\_frame(hip\_height: array)}
+    \begin{algorithmic}[1]
+    \State $n \gets \text{length of } hip\_height$
+    \State $total\_error \gets 100$
+    \State $changing\_points \gets (0,0)$
+    \State $runup\_coeffs \gets []$
+    \State $jump\_coeffs \gets []$
+    \For{$i \gets 0$ \textbf{to} $n - 2$}
+        \For{$j \gets i + 2$ \textbf{to} $n$}
+            \State $x\_runup \gets \text{array of } i \text{ elements from } 0 \text{ to } i - 1$
+            \State $x\_jump \gets \text{array of } (j - i) \text{ elements from } 0 \text{ to } j - i - 1$
+            \State $x\_landing \gets \text{array of } (n - j) \text{ elements from } 0 \text{ to } n - j - 1$
+            \State $hip\_fit\_runup, residuals\_runup \gets \text{polyfit}(x\_runup, hip\_height[:i], 1)$
+            \State $hip\_fit\_jump, residuals\_jump \gets \text{polyfit}(x\_jump, hip\_height[i:j], 2)$
+            \State $hip\_fit\_landing, residuals\_landing \gets \text{polyfit}(x\_landing, hip\_height[j:], 1)$
+            \State $fitting\_error \gets residuals\_runup + residuals\_jump + residuals\_landing$
+            \If{fitting\_error $<$ total\_error \textbf{and} hip\_fit\_jump[0] $<$ 0}
+                \State $total\_error \gets$ fitting\_error
+                \State $changing\_points \gets (i,j)$
+                \State $runup\_coeffs \gets hip\_fit\_runup$
+                \State $jump\_coeffs \gets hip\_fit\_jump$
+            \EndIf
+        \EndFor
+    \EndFor
+    \State \textbf{return} changing\_points
+    \end{algorithmic}
+    \end{algorithm}
 
 \section{Hardware setup}\label{sec:4_hardware}
 In order to capture high-quality video recordings that cover a complete long 
