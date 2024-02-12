@@ -363,7 +363,23 @@ The combination of phase transition points that leads to the minimal
 $E_{total}$ is then considered as the optimal model to fit the overall jump.
 As the found phase transition points directly represent their corresponding
 frame numbers, the takeoff frame is directly given by the first phase
-transition point.
+transition point.\\
+
+\begin{figure}[htp]% [H] is so declass\'e!
+    \centering
+    \begin{minipage}{0.45\textwidth}
+    \includegraphics[width=\textwidth]{regression_jump_only.png}
+    \caption{figure caption}
+    \end{minipage}\hfill
+    \begin{minipage}{0.45\textwidth}
+    \includegraphics[width=\textwidth]{regression_poor_approach.png}
+    \caption{figure caption}
+    \end{minipage}\par
+    \vskip\floatsep% normal separation between figures
+    \includegraphics[width=0.45\textwidth]{regression_poor_approach_jump.png}
+    \caption{figure caption}
+    \end{figure}
+\FloatBarrier
 
 \begin{algorithm}
     \caption{takeoff\_frame(hip\_height: array)}
