@@ -182,7 +182,9 @@ As mentioned before, the takeoff frame is defined as the point where the
 approach phase ends and the jumping phase starts, ($PT_0$ in
 \autoref{fig:4_long_jump_sketch}).
 Thus, if a mathematical expression can be found for each phase respectively,
-the takeoff frame is found implicitly.\\
+the takeoff frame is found implicitly.
+This algorithm is based on the algorithm for a takeoff frame detection
+described in [CITE!].\\ % TODO
 The runup phase includes all frames in the interval $[0, PT_0[$, the jumping
 phase is covered by the frames in range $[PT_0, PT_1[$ and the landing phase
 is shown by the frames in the interval $[PT_1, n[$, where $PT_0$ defines the
@@ -364,51 +366,68 @@ $E_{total}$ is then considered as the optimal model to fit the overall jump.
 As the found phase transition points directly represent their corresponding
 frame numbers, the takeoff frame is directly given by the first phase
 transition point.\\
-
-\begin{figure}[htp]% [H] is so declass\'e!
-    \centering
-    \begin{minipage}{0.45\textwidth}
-    \includegraphics[width=\textwidth]{regression_jump_only.png}
-    \caption{figure caption}
-    \end{minipage}\hfill
-    \begin{minipage}{0.45\textwidth}
-    \includegraphics[width=\textwidth]{regression_poor_approach.png}
-    \caption{figure caption}
-    \end{minipage}\par
-    \vskip\floatsep% normal separation between figures
-    \includegraphics[width=0.45\textwidth]{regression_poor_approach_jump.png}
-    \caption{figure caption}
-    \end{figure}
-\FloatBarrier
-
+The described process is outlined in following
+Algorithm~\ref{alg:takeoff_frame}.
 \begin{algorithm}
-    \caption{takeoff\_frame(hip\_height: array)}
+    \caption{takeoff\_frame(cm\_height: array)}
     \begin{algorithmic}[1]
-    \State $n \gets \text{length of } hip\_height$
-    \State $total\_error \gets 100$
-    \State $changing\_points \gets (0,0)$
-    \State $runup\_coeffs \gets []$
-    \State $jump\_coeffs \gets []$
-    \For{$i \gets 0$ \textbf{to} $n - 2$}
-        \For{$j \gets i + 2$ \textbf{to} $n$}
-            \State $x\_runup \gets \text{array of } i \text{ elements from } 0 \text{ to } i - 1$
-            \State $x\_jump \gets \text{array of } (j - i) \text{ elements from } 0 \text{ to } j - i - 1$
-            \State $x\_landing \gets \text{array of } (n - j) \text{ elements from } 0 \text{ to } n - j - 1$
-            \State $hip\_fit\_runup, residuals\_runup \gets \text{polyfit}(x\_runup, hip\_height[:i], 1)$
-            \State $hip\_fit\_jump, residuals\_jump \gets \text{polyfit}(x\_jump, hip\_height[i:j], 2)$
-            \State $hip\_fit\_landing, residuals\_landing \gets \text{polyfit}(x\_landing, hip\_height[j:], 1)$
-            \State $fitting\_error \gets residuals\_runup + residuals\_jump + residuals\_landing$
-            \If{fitting\_error $<$ total\_error \textbf{and} hip\_fit\_jump[0] $<$ 0}
-                \State $total\_error \gets$ fitting\_error
-                \State $changing\_points \gets (i,j)$
-                \State $runup\_coeffs \gets hip\_fit\_runup$
-                \State $jump\_coeffs \gets hip\_fit\_jump$
-            \EndIf
+        \State $n \gets \text{length of } cm\_height$
+        \State $total\_error \gets \text{initial error}$
+        \State $changing\_points \gets (0,0)$
+        \For{$i \gets 0$ \textbf{to} $n - 1$}
+            \For{$j \gets i + 1$ \textbf{to} $n$}
+            \State $\vec{\beta_{approach}}, error\_approach \gets \text{lin\_reg}(hip\_height[:i])$
+            \State $\vec{\beta_{jump}}, error\_jump \gets \text{quad\_reg}(hip\_height[i:j])$
+            \State $\vec{\beta_{landing}}, error\_landing \gets \text{lin\_reg}(hip\_height[j:])$
+            \State $fitting\_error \gets error\_approach + error\_jump + error\_landing$
+                \If{fitting\_error $<$ total\_error \textbf{and} $\vec{\beta_{jump}}[0]$ $<$ 0}
+                    \State $total\_error \gets$ fitting\_error
+                    \State $changing\_points \gets (i,j)$
+                \EndIf
+            \EndFor
         \EndFor
-    \EndFor
-    \State \textbf{return} changing\_points
+        \State \textbf{return} changing\_points
     \end{algorithmic}
-    \end{algorithm}
+\label{alg:takeoff_frame}
+\end{algorithm}
+
+\noindent The shown algorithm was then applied to all three datasets shown in
+\autoref{fig:4_angles_height_plot}. 
+The results are shown in \autoref{fig:4_automatic_takeoff_results}.\\
+For better understanding, the height of the \ac{CM} was extracted from the
+datasets which is the only parameter which is relevant for the takeoff
+detection.
+The data is still not cleaned up in any way, thus, outliers are still
+visible.
+However, as can be seen, the automatically detected takeoff frames are very
+similar to the manually annotated frame numbers.
+
+
+
+\begin{figure}[h!]
+    \centering
+    \begin{subfigure}{0.45\textwidth}
+        \includegraphics[width=\textwidth]{regression_jump_only.png}
+        \caption{Short approach, reliable keypoint quality}
+    \end{subfigure}\hfill
+    \begin{subfigure}{0.45\textwidth}
+        \includegraphics[width=\textwidth]{regression_poor_approach.png}
+        \caption{Long approach, outliers in approach}
+    \end{subfigure}
+    \begin{subfigure}{0.45\textwidth}
+        \includegraphics[width=\textwidth]{regression_poor_approach_jump.png}
+        \caption{Long approach, outliers in approach and jump}
+    \end{subfigure}
+    \caption[Automatic takeoff frame detection results]{
+        All three jumping phases approximated using linear regression
+        (runup and landing) and quadratic regression (jumping phase).\\
+        The automatically detected takeoff frame is marked with a
+        \textcolor{red}{red dot}.\\
+        The \textcolor{cyan}{vertical blue lines} represent the manually marked
+        takeoff frames.}
+\label{fig:4_automatic_takeoff_results}
+\end{figure}
+\FloatBarrier
 
 \section{Hardware setup}\label{sec:4_hardware}
 In order to capture high-quality video recordings that cover a complete long 
