@@ -40,7 +40,31 @@ video input is implemented.
 \end{figure}
 \FloatBarrier
 
-\subsection{Detecting body key points}\label{subsec:4_body_keypoint_detection}
+\subsection{Video processing}\label{subsec:4_body_keypoint_detection}
+After a video has been recorded, several processing steps need to be performed
+to calculate the parameters shown in \autoref{fig:4_long_jump_sketch}.
+All steps are performed frame-wise, meaning all calculations are performed for
+each input video frame respectively.
+
+%TODO: figure of processing pipeline: - video -> extracted frame -> high-pass filter -> body keypoint detection -> hdf5 file / takeoff frame detection%
+
+\subsubsection*{Detecting body key points}
+In order to calculate the parameters visualized in
+\autoref{fig:4_long_jump_sketch}, the body key points need to be detected and
+saved first.
+Therefore, the video is processed frame-wise, meaning in each frame body key
+points are tried to be localised using Google's Mediapipe framework.
+Generally the key points that can be detected in each frame are shown in
+\autoref{fig:2_body_keypoints}.
+As described however, only few of them are relevant for calculating the
+jumping parameters.\\
+The calculation of all parameters shown in
+\autoref{sec:4_analysis_software} is explained in the following.
+The used keypoint numbers are labeled according to
+\autoref{fig:2_body_keypoints}.
+
+\subsubsection*{Arm- and knee angle calculation}
+\subsubsection*{Takeoff angle calculation}
 
 \subsection{Calculating analysis parameters}\label{subsec:4_calc_params}
 
@@ -183,14 +207,30 @@ approach phase ends and the jumping phase starts, ($PT_0$ in
 \autoref{fig:4_long_jump_sketch}).
 Thus, if a mathematical expression can be found for each phase respectively,
 the takeoff frame is found implicitly.
-This algorithm is based on the algorithm for a takeoff frame detection
-described in [CITE!].\\ % TODO
-The runup phase includes all frames in the interval $[0, PT_0[$, the jumping
+The algorithm used for this task is based on the algorithm for a takeoff
+frame detection developed by xyz [CITE!].\\%TODO
+Other than supposed in xyz's work, the detection algorithm in this work is not
+based on the foot positions, but on the \ac{CM} position.
+There are several reasons for preferring the \ac{CM} over the foot positions.
+One of the most important reasons lies in the different jumping techniques,
+more specifically in the resulting differences during the jumping phase.
+While the foot path during the jumping phase is rather smooth for
+athletes using the \textit{hang technique}, it is very different for
+athletes using the \textit{hitch-kick technique}.
+Latter one is characterized by quick foot position interchanges, making it
+more error-prone for inaccuracies in the corresponding body key point
+detection.
+Thus, approximating the jumping phase based on the foot positions is more
+complex and less precise.
+The \ac{CM} however follows a similar path independent from the jumping
+technique, making it more suited for the given purpose of detecting the
+takeoff frame.\\\\
+\noindent The runup phase includes all frames in the interval $[0, PT_0[$, the jumping
 phase is covered by the frames in range $[PT_0, PT_1[$ and the landing phase
 is shown by the frames in the interval $[PT_1, n[$, where $PT_0$ defines the
 first Phase Transition point (the takeoff) and $PT_1$ the point at which the
 landing phase starts.
-Each phase by itself can be approximated with a polynomial function.
+Each phase by itself can be approximated by a polynomial function.
 The approach and the landing can be fitted using a linear expression.\\
 Thus, two linear regressions are performed separately to find two expressions
 of the form
@@ -241,8 +281,8 @@ This can be written in short form as:
     \vec{y} = T\vec{\beta} + \vec{\epsilon}    
 \]
 Now, the vector $\vec{\beta}$ needs to be found that minimizes the sum of
-errors $E_{SSE}$ between the measured \ac{CM} height $h_i \in \vec{h}$ and the
-fitted polynomial $y_i$ at time step i.
+errors $E_{SSE}$ between the measured \ac{CM} heights $h_i \in \vec{h}$ and
+the fitted polynomial $y_i$ at time step i.
 To measure the error, the \ac{SSE} is used:
 \begin{equation}
     E_{SSE} = \sum_{i=start}^{end} \epsilon_i^2 = \sum_{i=start}^{end} (h_i - y_i)^2
@@ -263,7 +303,7 @@ needed, which can be found by solving following equation:
     \nabla_{\vec{\beta}}E_{SSE} = \nabla_{\vec{\beta}}(T\vec{\beta} - \vec{h})^T(T\vec{\beta} - \vec{h}) = 0
 \end{equation}
 where $\nabla_{\vec{\beta}}$ denotes the gradient with respect to $\vec{\beta}$.\\
-The coefficients can then easily be found by solving
+The coefficients can then be found by solving
 \autoref{eq:gradient_linear_case} for $\vec{\beta}$, which yields the 
 following normal equation:
 \begin{equation}\label{eq:normal_equation}
@@ -373,7 +413,7 @@ Algorithm~\ref{alg:takeoff_frame}.
     \begin{algorithmic}[1]
         \State $n \gets \text{length of } cm\_height$
         \State $total\_error \gets \text{initial error}$
-        \State $changing\_points \gets (0,0)$
+        \State $transition\_points \gets (0,0)$
         \For{$i \gets 0$ \textbf{to} $n - 1$}
             \For{$j \gets i + 1$ \textbf{to} $n$}
             \State $\vec{\beta_{approach}}, error\_approach \gets \text{lin\_reg}(hip\_height[:i])$
@@ -382,26 +422,33 @@ Algorithm~\ref{alg:takeoff_frame}.
             \State $fitting\_error \gets error\_approach + error\_jump + error\_landing$
                 \If{fitting\_error $<$ total\_error \textbf{and} $\vec{\beta_{jump}}[0]$ $<$ 0}
                     \State $total\_error \gets$ fitting\_error
-                    \State $changing\_points \gets (i,j)$
+                    \State $transition\_points \gets (i,j)$
                 \EndIf
             \EndFor
         \EndFor
-        \State \textbf{return} changing\_points
+        \State \textbf{return} transition\_points
     \end{algorithmic}
 \label{alg:takeoff_frame}
 \end{algorithm}
 
-\noindent The shown algorithm was then applied to all three datasets shown in
-\autoref{fig:4_angles_height_plot}. 
+
+\noindent The expression \texttt{$\vec{\beta_{jump}}[0] < 0$} guarantees, that the found parabola
+for approximating the jumping phase is opened downwards.
+Moreover, the shown algorithms' runtime scales according to $\mathcal{O}(n^2)$
+where n is the number of video frames~\footnote{in which body key points were
+found}. 
+Thus, it is not suitable for long video sequences.
+However, as a complete long jump takes only a few seconds, the algorithm can
+be used for an on-field jump analysis.\\
+Algorithm~\ref{alg:takeoff_frame} was then applied to all three datasets shown
+in \autoref{fig:4_angles_height_plot}. 
 The results are shown in \autoref{fig:4_automatic_takeoff_results}.\\
 For better understanding, the height of the \ac{CM} was extracted from the
-datasets which is the only parameter which is relevant for the takeoff
-detection.
-The data is still not cleaned up in any way, thus, outliers are still
+datasets as it is the only parameter relevant for the takeoff detection.
+The data is not cleaned up in any way, thus, outliers are still
 visible.
-However, as can be seen, the automatically detected takeoff frames are very
+However, as can be seen, the automatically detected takeoff frames are
 similar to the manually annotated frame numbers.
-
 
 
 \begin{figure}[h!]
@@ -428,6 +475,8 @@ similar to the manually annotated frame numbers.
 \label{fig:4_automatic_takeoff_results}
 \end{figure}
 \FloatBarrier
+
+\subsubsection{Visualization in a \acs*{GUI}}\label{subsec:4_lj_software_gui}
 
 \section{Hardware setup}\label{sec:4_hardware}
 In order to capture high-quality video recordings that cover a complete long 
