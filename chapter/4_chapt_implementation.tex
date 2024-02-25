@@ -43,10 +43,44 @@ video input is implemented.
 \subsection{Video processing}\label{subsec:4_body_keypoint_detection}
 After a video has been recorded, several processing steps need to be performed
 to calculate the parameters shown in \autoref{fig:4_long_jump_sketch}.
-All steps are performed frame-wise, meaning all calculations are performed for
-each input video frame respectively.
+All calculations are performed for each input video frame respectively.
+In the first processing stage, multiple filters can be applied to each frame.
+The body key point detection is then performed on the filtered output. 
+Based on these key points, the jumping parameters can be calculated which are
+then in a last stage saved to a hdf5 file as well as used for the automatic
+takeoff frame detection.\\
+The whole process is visualized below in \autoref{fig:4_video_pipeline}.
+\begin{figure}[!h]
+    \centering
+    \includegraphics[scale=0.54]{video_pipeline.pdf}
+    \caption[Video processing pipeline]{Video processing pipeline.\\
+    Stages, that each video frame passes through.}
+    \label{fig:4_video_pipeline}
+\end{figure}
+\FloatBarrier
+\noindent In the following subsections each of the shown processing stages
+will be explained in detail.
 
 %TODO: figure of processing pipeline: - video -> extracted frame -> high-pass filter -> body keypoint detection -> hdf5 file / takeoff frame detection%
+\subsubsection*{Pre-processing via filter application}
+The first stage is meant to prepare the incoming video frames to get the best
+possible result from the following pose detection stage.
+Thus, this stage will in the following be referred to as \textit{pre
+processing stage}.\\
+To get an accurate pose detection result it is important to have sharp edges
+around the athletes' body and an overall low noise level.
+This can be achieved by applying different filters to each frame.\\
+Three of the most commonly used filters are high-pass (sharpening), low-pass
+(blurring) and edge preserving low-pass filters, also known as bilateral
+filters.
+As the best choice depends on the video input and recording conditions,
+all of them are implemented and can be mixed with each other.\\
+The low- and high pass filter operations can be expressed as 2D spatial
+convolutions of an input image \textbf{I} of size $(x_i,y_i)$ and a (quadratic)
+filter kernel \textbf{K} of size $(x_k, y_k)$.
+\begin{equation}
+    C(i, j) = \sum_{m=-a}^{a} \sum_{n=-b}^{b} K(m, n) \cdot I(i - m, j - n)
+\end{equation}   
 
 \subsubsection*{Detecting body key points}
 In order to calculate the parameters visualized in
