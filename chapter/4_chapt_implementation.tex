@@ -81,7 +81,8 @@ filter kernel \textbf{K} of size $(x_k, y_k)$.
 \begin{equation}
     C(i, j) = \sum_{m=-a}^{a} \sum_{n=-b}^{b} K(m, n) \cdot I(i - m, j - n)
 \end{equation}   
-
+where C is the filtered frame, $a = \lfloor \frac{x_k}{2} \rfloor$ and
+$b = \lfloor \frac{x_i}{2} \rfloor$.
 \subsubsection*{Detecting body key points}
 In order to calculate the parameters visualized in
 \autoref{fig:4_long_jump_sketch}, the body key points need to be detected and
