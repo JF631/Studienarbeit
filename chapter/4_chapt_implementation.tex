@@ -81,27 +81,60 @@ filter kernel \textbf{K} of size $(x_k, y_k)$.
 \begin{equation}
     C(i, j) = \sum_{m=-a}^{a} \sum_{n=-b}^{b} K(m, n) \cdot I(i - m, j - n)
 \end{equation}   
-where C is the filtered frame, $a = \lfloor \frac{x_k}{2} \rfloor$ and
+where C is the filtered output frame, $a = \lfloor \frac{x_k}{2} \rfloor$ and
 $b = \lfloor \frac{x_i}{2} \rfloor$.
+%TODO: insert gaussian filter (bilateral: spacial and range gaussians combined)%
+
 \subsubsection*{Detecting body key points}
-In order to calculate the parameters visualized in
-\autoref{fig:4_long_jump_sketch}, the body key points need to be detected and
-saved first.
-Therefore, the video is processed frame-wise, meaning in each frame body key
-points are tried to be localised using Google's Mediapipe framework.
-Generally the key points that can be detected in each frame are shown in
-\autoref{fig:2_body_keypoints}.
-As described however, only few of them are relevant for calculating the
-jumping parameters.\\
-The calculation of all parameters shown in
-\autoref{sec:4_analysis_software} is explained in the following.
-The used keypoint numbers are labeled according to
-\autoref{fig:2_body_keypoints}.
+Each pre processed video frame is passed to the key point detector stage.
+This stage is based on the mediapipe pose detection framework (see
+\autoref{subsec:2_mediapipe_framework} and \autoref{subsec:2_why_mediapipe}).
+The models used in this work are the BlazePose models.
+BlazePose is a convolutional neural network with an architecture similar to
+MobileNetV2.\\
+It is capable of detecting a total of 33 body key points (shown in
+\autoref{fig:2_body_keypoints}).
+All of them are tried to be detected in each frame, while only few of them are
+used in the following parameter calculation process.\\
+The BlazePose network is able to work directly with RGB images as.
+Thus, the filtered results form the pre-processing stage are as well in the
+RGB color space.
+The output generally is a 5-tuple for each detected key point.
+Besides \texttt{x and y} coordinates, BlazePose also offers a
+\texttt{depth estimation} and values describing the probability of an keypoint
+being \texttt{present} and \texttt{visible} in the current frame. 
+Furthermore, BlazePose offers three different models\footnote{light, full and
+heavy} which differ in the amount of parameters, thus in the network
+complexity and the resulting detection accuracy.
+Their inference times range from 0.02s to 0.25s per input video frame
+respectively.
+Hence, the least complex model can also be used for real time pose detection.\\
+This project supports all three models, as a quick and less accurate analysis
+can be sufficient (especially in good lighting and recording conditions),
+whereas the best detection results, especially in poor quality videos are
+achieved by using the heavy model.\\
+The detected poses can be visualized as can be seen in following
+\autoref{fig:4_pose_detection_in_out}: 
+\begin{figure}
+    \begin{subfigure}[b]{0.47\textwidth}
+        \includegraphics*[scale=0.1]{takeoff_good.png}
+        \caption{Sample input frame}
+        \label{subfig:input_frame}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.5\textwidth}
+        \includegraphics*[scale=0.185]{takeoff_keypoints.png}
+        \caption{Pose detection output}
+        \label{subfig:output_pose_detection_result}
+    \end{subfigure}
+    \caption[Pose detection example]{Sample pose detection output.\\
+    (a) is the input video frame and (b) is the pose detector output.
+    The input frame was pre processed using a high pass filter.}
+    \label{fig:4_pose_detection_in_out}
+\end{figure}
 
 \subsubsection*{Arm- and knee angle calculation}
 \subsubsection*{Takeoff angle calculation}
-
-\subsection{Calculating analysis parameters}\label{subsec:4_calc_params}
 
 \subsection{Automatic takeoff frame detection}\label{subsec:4_takeoff_detection}
 Generally, a long jump can be divided into three different phases, namely
