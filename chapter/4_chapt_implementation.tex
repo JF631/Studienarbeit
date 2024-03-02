@@ -163,13 +163,13 @@ The detected poses can be visualized as can be seen in following
 \autoref{fig:4_pose_detection_in_out}: 
 \begin{figure}[h!]
     \begin{subfigure}[b]{0.47\textwidth}
-        \includegraphics*[scale=0.1]{jump_no_runup.png}
+        \includegraphics*[scale=0.1]{takeoff_good.png}
         \caption{Sample input frame}
         \label{subfig:input_frame}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.5\textwidth}
-        \includegraphics*[scale=0.185]{jump_runup_poor.png}
+        \includegraphics*[scale=0.185]{takeoff_keypoints.png}
         \caption{Pose detection output}
         \label{subfig:output_pose_detection_result}
     \end{subfigure}
@@ -237,9 +237,9 @@ degree, meaning the jumping leg is fully extended.
 The swing legs' knee angle varies in the shown examples around 100 degree.\\\\
 The visually most significant change which happens in the moment of the
 takeoff and is therefore the most meaningful measured parameter that indicates
-the takeoff is the change of height of the \ac{CM}.
+the takeoff is \ac{CM}'s rapid height change.
 Thus, the automatic takeoff detection is developed based on this parameter.\\
-To approach the detection of the rapid change in the \ac{CM}s' vertical
+To approach the detection of the change in the \ac{CM}s' vertical
 velocity, a mathematical description of its position during the jump is
 modelled.
 
@@ -338,9 +338,12 @@ detection.
 Thus, approximating the jumping phase based on the foot positions is more
 complex and less precise.
 The \ac{CM} however follows a similar path independent from the jumping
-technique, making it more suited for the given purpose of detecting the
+technique, making it more suitable for the given purpose of detecting the
 takeoff frame.\\\\
-\noindent The runup phase includes all frames in the interval $[0, PT_0[$, the jumping
+\noindent In the following, the algorithm is explained in detail.
+All mentioned frame numbers and jumping phases refer to
+\autoref{fig:4_long_jump_sketch}.\\
+The runup phase includes all frames in the interval $[0, PT_0[$, the jumping
 phase is covered by the frames in range $[PT_0, PT_1[$ and the landing phase
 is shown by the frames in the interval $[PT_1, n[$, where $PT_0$ defines the
 first Phase Transition point (the takeoff) and $PT_1$ the point at which the
@@ -524,7 +527,7 @@ transition point.\\
 The described process is outlined in following
 Algorithm~\ref{alg:takeoff_frame}.
 \begin{algorithm}[h!]
-    \caption{takeoff\_frame(cm\_height: array)}
+    \caption{takeoff\_frame(cm\_height: array, knee\_angles: array)}
     \begin{algorithmic}[1]
         \State $n \gets \text{length of } cm\_height$
         \State $total\_error \gets \text{initial error}$
@@ -535,7 +538,7 @@ Algorithm~\ref{alg:takeoff_frame}.
             \State $\vec{\beta_{jump}}, error\_jump \gets \text{quad\_reg}(hip\_height[i:j])$
             \State $\vec{\beta_{landing}}, error\_landing \gets \text{lin\_reg}(hip\_height[j:])$
             \State $fitting\_error \gets error\_approach + error\_jump + error\_landing$
-                \If{fitting\_error $<$ total\_error \textbf{and} $\vec{\beta_{jump}}[0]$ $<$ 0}
+                \If{fitting\_error $<$ total\_error \textbf{and} $\vec{\beta_{jump}}[0]$ $<$ 0 \textbf{and} knee\_angles[i] > 170}
                     \State $total\_error \gets$ fitting\_error
                     \State $transition\_points \gets (i,j)$
                 \EndIf
@@ -547,9 +550,11 @@ Algorithm~\ref{alg:takeoff_frame}.
 \end{algorithm}
 \FloatBarrier
 
-\noindent The expression \texttt{$\vec{\beta_{jump}}[0] < 0$} guarantees, that the found parabola
-for approximating the jumping phase is opened downwards.
-Moreover, the shown algorithms' runtime scales according to $\mathcal{O}(n^2)$
+\noindent The expression \texttt{$\vec{\beta_{jump}}[0] < 0$} guarantees, that
+the found parabola for approximating the jumping phase is opened downwards.
+Moreover, \texttt{$knee\_angles[i] > 170$} makes sure, that only frames in
+which the knee angle is above 170 degrees can be considered as takeoff point.\\
+The shown algorithms' runtime scales according to $\mathcal{O}(n^2)$
 where n is the number of video frames~\footnote{in which body key points were
 found}. 
 Thus, it is not suitable for long video sequences.
