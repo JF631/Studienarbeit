@@ -61,7 +61,6 @@ The whole process is visualized below in \autoref{fig:4_video_pipeline}.
 \noindent In the following subsections each of the shown processing stages
 will be explained in detail.
 
-%TODO: figure of processing pipeline: - video -> extracted frame -> high-pass filter -> body keypoint detection -> hdf5 file / takeoff frame detection%
 \subsubsection*{Pre-processing via filter application}
 The first stage is meant to prepare the incoming video frames to get the best
 possible result from the following pose detection stage.
@@ -83,7 +82,39 @@ filter kernel \textbf{K} of size $(x_k, y_k)$.
 \end{equation}   
 where C is the filtered output frame, $a = \lfloor \frac{x_k}{2} \rfloor$ and
 $b = \lfloor \frac{x_i}{2} \rfloor$.
-%TODO: insert gaussian filter (bilateral: spacial and range gaussians combined)%
+This method is also known as moving window filtering and is supported by
+opencv using the \texttt{filter2D()} method.\\
+The low pass filter especially helps to reduce noise in an input video frame.
+Because of its' blurring character, the edges around the athletes' body lose
+their details as well.
+However, especially in low light conditions, this can be a good first approach
+to get better results from the key point detector stage.
+The high pass filter on the other hand is not suitable for videos that contain
+noisy frames.
+The the noise would be amplified as well as the edges which leads to
+a worse body key point detection performance.
+However, in high quality video recordings, the high pass filter helps to
+enhance the overall sharpness and therefore especially the edges around the
+athletes' body.\\
+
+\noindent To reduce the overall noise level in a video frame while preserving
+edges, a third filter, namely the \textit{bilateral filter}, is implemented.
+It is defined by the following equation:
+\begin{equation}
+    C(I)_p = \frac{1}{W_p}\sum_{q \in S}^{} {G_\sigma}_s(\lVert p - q \rVert) {G_\sigma}_r(I_p - I_q)I_q
+\end{equation}
+where $C(I)_p$ is the output intensity of the filtered pixel p, ${G_\sigma}_s$
+is a spatial gauss filter which decreases the influence of pixel q with
+increasing distance between p and q.
+${G_\sigma}_r$ is a range gauss filter, meaning it decreases the influence of
+pixel q with increasing intensity difference between p and q.
+Their intensities are denoted as $I_q$ and $I_p$ respectively.
+S represents the set of pixels close to p and is determined by the filter
+size.
+The normalization factor $W_p$ is given by:
+\begin{equation}
+    W_p = \frac{1}{W_p}\sum_{q \in S}^{} {G_\sigma}_s(\lVert p - q \rVert) {G_\sigma}_r(I_p - I_q)
+\end{equation}
 
 \subsubsection*{Detecting body key points}
 Each pre processed video frame is passed to the key point detector stage.
@@ -115,7 +146,7 @@ whereas the best detection results, especially in poor quality videos are
 achieved by using the heavy model.\\
 The detected poses can be visualized as can be seen in following
 \autoref{fig:4_pose_detection_in_out}: 
-\begin{figure}
+\begin{figure}[h!]
     \begin{subfigure}[b]{0.47\textwidth}
         \includegraphics*[scale=0.1]{takeoff_good.png}
         \caption{Sample input frame}
@@ -135,6 +166,7 @@ The detected poses can be visualized as can be seen in following
 
 \subsubsection*{Arm- and knee angle calculation}
 \subsubsection*{Takeoff angle calculation}
+\subsubsection*{Saving analysis results}
 
 \subsection{Automatic takeoff frame detection}\label{subsec:4_takeoff_detection}
 Generally, a long jump can be divided into three different phases, namely
@@ -476,7 +508,7 @@ frame numbers, the takeoff frame is directly given by the first phase
 transition point.\\
 The described process is outlined in following
 Algorithm~\ref{alg:takeoff_frame}.
-\begin{algorithm}
+\begin{algorithm}[h!]
     \caption{takeoff\_frame(cm\_height: array)}
     \begin{algorithmic}[1]
         \State $n \gets \text{length of } cm\_height$
@@ -498,7 +530,7 @@ Algorithm~\ref{alg:takeoff_frame}.
     \end{algorithmic}
 \label{alg:takeoff_frame}
 \end{algorithm}
-
+\FloatBarrier
 
 \noindent The expression \texttt{$\vec{\beta_{jump}}[0] < 0$} guarantees, that the found parabola
 for approximating the jumping phase is opened downwards.
@@ -517,8 +549,6 @@ The data is not cleaned up in any way, thus, outliers are still
 visible.
 However, as can be seen, the automatically detected takeoff frames are
 similar to the manually annotated frame numbers.
-
-
 \begin{figure}[h!]
     \centering
     \begin{subfigure}{0.45\textwidth}
