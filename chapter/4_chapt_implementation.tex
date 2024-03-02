@@ -103,18 +103,33 @@ It is defined by the following equation:
 \begin{equation}
     C(I)_p = \frac{1}{W_p}\sum_{q \in S}^{} {G_\sigma}_s(\lVert p - q \rVert) {G_\sigma}_r(I_p - I_q)I_q
 \end{equation}
-where $C(I)_p$ is the output intensity of the filtered pixel p, ${G_\sigma}_s$
+where $C(I)_p$ is the output intensity of the filtered pixel p. ${G_\sigma}_s$
 is a spatial gauss filter which decreases the influence of pixel q with
 increasing distance between p and q.
 ${G_\sigma}_r$ is a range gauss filter, meaning it decreases the influence of
 pixel q with increasing intensity difference between p and q.
 Their intensities are denoted as $I_q$ and $I_p$ respectively.
-S represents the set of pixels close to p and is determined by the filter
-size.
+S represents the set of pixels close to p and is determined by a diameter d
+around each pixel.
 The normalization factor $W_p$ is given by:
 \begin{equation}
-    W_p = \frac{1}{W_p}\sum_{q \in S}^{} {G_\sigma}_s(\lVert p - q \rVert) {G_\sigma}_r(I_p - I_q)
+    W_p = \sum_{q \in S}^{} {G_\sigma}_s(\lVert p - q \rVert) {G_\sigma}_r(I_p - I_q)
 \end{equation}
+Compared to a simple low pass filter, which is as well implemented as gaussian
+filter, the bilateral filter takes advantage of not only considering the
+spatial relation between a pixel and its neighbors but also the relation
+between their intensity values.
+This allows a bilateral filter not only to smoothen high frequencies, but to
+preserve sharp edges at the same time.
+Opencv offers the built-in method \texttt{bilateralFilter()} to apply a
+bilateral filter to an input video frame.
+Besides the frame that should be filtered, it also takes $\sigma_s$ and
+$\sigma_r$ as parameters, which define the algorithms' sensitivity to
+spatial- and intensity changes as well as the diameter d in pixels.\\
+As the filters time complexity depends on the region around each pixel that
+is taken into account in the gaussian weighting process, it is implemented as
+first approach to smoothen an input video frame without losing important
+details in the regions relevant for the body key point detection.
 
 \subsubsection*{Detecting body key points}
 Each pre processed video frame is passed to the key point detector stage.
@@ -148,13 +163,13 @@ The detected poses can be visualized as can be seen in following
 \autoref{fig:4_pose_detection_in_out}: 
 \begin{figure}[h!]
     \begin{subfigure}[b]{0.47\textwidth}
-        \includegraphics*[scale=0.1]{takeoff_good.png}
+        \includegraphics*[scale=0.1]{jump_no_runup.png}
         \caption{Sample input frame}
         \label{subfig:input_frame}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.5\textwidth}
-        \includegraphics*[scale=0.185]{takeoff_keypoints.png}
+        \includegraphics*[scale=0.185]{jump_runup_poor.png}
         \caption{Pose detection output}
         \label{subfig:output_pose_detection_result}
     \end{subfigure}
