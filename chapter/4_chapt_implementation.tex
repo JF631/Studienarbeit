@@ -147,10 +147,11 @@ Thus, the filtered results form the pre-processing stage are as well in the
 RGB color space.
 The output generally is a 5-tuple for each detected key point.
 Besides \texttt{x and y} coordinates, BlazePose also offers a
-\texttt{depth estimation} and values describing the probability of an keypoint
-being \texttt{present} and \texttt{visible} in the current frame. 
+\texttt{depth estimation} and values describing the probability of a key point
+being \texttt{present} and \texttt{visible} in the current frame.
+The x and y values are normalized according to the image width and height.
 Furthermore, BlazePose offers three different models\footnote{light, full and
-heavy} which differ in the amount of parameters, thus in the network
+heavy} which differ in the amount of parameters, thus in the networks'
 complexity and the resulting detection accuracy.
 Their inference times range from 0.02s to 0.25s per input video frame
 respectively.
@@ -180,6 +181,57 @@ The detected poses can be visualized as can be seen in following
 \end{figure}
 
 \subsubsection*{Arm- and knee angle calculation}
+Based on the previously detected body key points, the parameters shown in
+\autoref{fig:4_long_jump_sketch} can be calculated.
+Especially knee angles during the run up- and takeoff phase can give important
+insights into an athletes' overall jumping dynamics.
+On this occasion lower knee angles during the run up (toe off point) as well
+as during the takeoff (swing leg) were found to lead to better jumping
+results.
+Thus, theses parameters are calculated by the software and can be saved and
+visualized afterwards.
+In the following, the angle calculation is explained based on the knee angle
+calculation.
+Taking the relevant detected key points into consideration, following
+situation is given:
+\begin{figure}[!h]
+    \centering
+    \includegraphics[scale=0.9]{knee_angles_calc.pdf}
+    \caption[Knee angle calculation]{Knee angle calculation and related body
+    key points.\\
+    \textcolor{red}{Red dots} represent the body key points needed to calculate
+    the knee angle. $\vec{hk}$ and $\vec{ka}$ denote the hip-knee vector and
+    the knee-ankle vector respectively.}
+    \label{fig:4_knee_angle_calculation}
+\end{figure}
+\FloatBarrier
+\noindent The vectors $\vec{hk}$ and $\vec{ka}$ can be calculated using the
+detected key points' coordinates:
+\begin{equation}
+    \vec{hk} = \begin{bmatrix}
+        knee.x - hip.x \\
+        knee.y - hip.y
+    \end{bmatrix} \\
+    \text{\ and \ }
+    \hfill
+    \vec{ka} = \begin{bmatrix}
+        ankle.x - knee.x \\
+        ankle.y - knee.y
+    \end{bmatrix}
+\end{equation}
+\noindent Where .x and .y denote the key points' respective x and y coordinates.\\
+The knee angle $\theta_{knee}$ is then represented by the angle
+between $\vec{hk}$ and $\vec{ka}$ and can be calculated by using the scalar
+product of $\vec{hk}$ and $\vec{ka}$ and their norms (lengths):
+\begin{equation}
+    \theta_{knee} = \arccos(\frac{\vec{hk} \cdot \vec{ka}}{\lvert \vec{hk} \rvert \cdot \lvert \vec{ka} \rvert})
+\end{equation}
+where $\cdot$ defines the scalar product in this case.
+The scalar product and the norm are calculated using numpys'
+\texttt{vdot()} and \texttt{norm()} methods.\\
+The arm angle calculation is performed analogously and is therefore not shown
+in detail.
+
 \subsubsection*{Takeoff angle calculation}
 \subsubsection*{Saving analysis results}
 
