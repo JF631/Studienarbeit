@@ -31,11 +31,10 @@ video input is implemented.
 \begin{figure}[!h]
     \centering
     \includegraphics[scale=0.6]{long_jump_sketch.pdf}
-    \caption[Long jump parameter overview]{General overview of the parameters
-    that are important in a long jump.\\
-    Parameters that can be analyzed by the software are marked
-    \textcolor{red}{red}.\\
-    The \textcolor{cyan}{blue points} indicate phase transition points.}
+    \caption[Long jump parameter overview]{General long jump overview.\\
+    Parameters that can be analyzed are marked \textcolor{red}{red}.\\
+    \textcolor{cyan}{$TP_0$} and \textcolor{cyan}{$TP_1$} denote phase
+    transition points.}
     \label{fig:4_long_jump_sketch}
 \end{figure}
 \FloatBarrier
@@ -131,7 +130,7 @@ is taken into account in the gaussian weighting process, it is implemented as
 first approach to smoothen an input video frame without losing important
 details in the regions relevant for the body key point detection.
 
-\subsubsection*{Detecting body key points}
+\subsubsection*{Detecting body key points}\label{subsubsec:4_detecting_body_keypoints}
 Each pre processed video frame is passed to the key point detector stage.
 This stage is based on the mediapipe pose detection framework (see
 \autoref{subsec:2_mediapipe_framework} and \autoref{subsec:2_why_mediapipe}).
@@ -207,7 +206,7 @@ situation is given:
 \FloatBarrier
 \noindent The vectors $\vec{hk}$ and $\vec{ka}$ can be calculated using the
 detected key points' coordinates:
-\begin{equation}
+\begin{equation}\label{eq:knee_angle_vectors}
     \vec{hk} = \begin{bmatrix}
         knee.x - hip.x \\
         knee.y - hip.y
@@ -223,17 +222,105 @@ detected key points' coordinates:
 The knee angle $\theta_{knee}$ is then represented by the angle
 between $\vec{hk}$ and $\vec{ka}$ and can be calculated by using the scalar
 product of $\vec{hk}$ and $\vec{ka}$ and their norms (lengths):
-\begin{equation}
-    \theta_{knee} = \arccos(\frac{\vec{hk} \cdot \vec{ka}}{\lvert \vec{hk} \rvert \cdot \lvert \vec{ka} \rvert})
+\begin{equation}\label{eq:knee_angle}
+    \theta_{knee} = \arccos\left(\frac{\vec{hk} \cdot \vec{ka}}{\lvert \vec{hk} \rvert \cdot \lvert \vec{ka} \rvert}\right)
 \end{equation}
 where $\cdot$ defines the scalar product in this case.
 The scalar product and the norm are calculated using numpys'
-\texttt{vdot()} and \texttt{norm()} methods.\\
+\texttt{dot()} and \texttt{norm()} methods.\\
 The arm angle calculation is performed analogously and is therefore not shown
-in detail.
+in detail.\\
+As the knee- and arm angle calculations have to be done for each video frame,
+they have to be implemented efficiently not to negatively influence the
+overall analysis time.
+Thus, numpy is used to perform the calculations.
+\begin{pythoncode}[caption=Angle calculation,label=lst:angle_calc_algo]
+    def calc_angle(first_vec, second_vec):
+        [...]
+        first_vec_norm = np.linalg.norm(first_vec)
+        second_vec_norm = np.linalg.norm(second_vec)
+        if first_vec_norm == 0 or second_vec_norm == 0:
+            return np.nan
+        return 180 - np.rad2deg(
+            np.arccos(
+                (np.dot(first_vec, second_vec))
+                / (first_vec_norm * second_vec_norm)
+            )
+        )
+\end{pythoncode}
+The above shown \texttt{calc\_angle()} function takes the two vectors as
+arguments between which the angle should be calculated.
+These vectors are, in case of the arm- and knee angles, given by the detected
+body key point positions (see
+\autoref{subsubsec:4_detecting_body_keypoints} and
+\autoref{eq:knee_angle_vectors}).\\
+%TODO%
+By using this implementation the overall angle calculation is sufficient fast
+(performance analysis are shown in \autoref{subsec:4_runtime_performance})
+in comparison to the keypoint detection process in order to allow for a quick
+on-field analysis.
 
 \subsubsection*{Takeoff angle calculation}
+As can be seen in \autoref{fig:4_long_jump_sketch}, in the moment of the
+takeoff, the \ac{CM}'s vertical velocity changes its direction rapidly.
+This change can be quantised by the angle around which the overall
+velocity vector rotates.
+The calculated angle is in the following referred to as \textit{takeoff angle}
+which is one of the most important pre-jump parameters.
+As shown in~\cite{seyfarth_optimum_2000}, even small deviations of around
+1\textdegree\ of the optimal takeoff angle can lead to shorter measured
+distances (see \autoref{fig:4_long_jump_sketch}) of up to 5~cm.
+The optimum takeoff angle differs between athletes and is especially
+correlated to the takeoff speed~\cite{tsuboi_mathematical_2010}.\\
+To calculate the takeoff angle, two vectors are needed.
+The first vector is a horizontal vector origin in the athletes \ac{CM}.
+The second vector represents the athletes' \ac{CM} velocity.
+It is calculated based on the takeoff frame, which needs to be determined
+first (see \autoref{subsec:4_takeoff_detection}).
+The second frame which is used to calculate the velocity vector is chosen
+according to an offset f based on the videos' frame
+rate\footnote{Chosen as $1/10$ of the frame rate}.
+The \ac{CM}'s velocity vector is therefore given by:
+\begin{equation}
+    \vec{{}v}_t = \frac{1}{f} * (\vec{{}x}_{t+f} - \vec{{}x}_t)
+\end{equation}
+where f is the frame offset and $\vec{{}x}_i$ are the position vectors.
+Here, $\vec{{}x}_t$ represents the \ac{CM} position at the moment of the takeoff
+whereas $\vec{{}x}_{t+f}$ denotes the \ac{CM} position f frames later.\\
+\autoref{eq:knee_angle} can then be applied again yielding following equation
+for the takeoff angle:
+\begin{equation}\label{eq:takeoff_angle}
+    \theta_{\text{takeoff}} = \arccos\left(\frac{\vec{v_t} \cdot \vec{h_t}}{\lvert\vec{v_t}\rvert \cdot \lvert\vec{h_t}\rvert}\right)
+\end{equation}
+where $\vec{h_t}$ denotes any horizontal vector, e.g. $\vec{h_t} = [1, 0]$.\\
+\autoref{eq:takeoff_angle} is calculated by using the function shown in
+\autoref{lst:angle_calc_algo} by passing the two vectors shown in following
+\autoref{fig:4_takeoff_angle_calculation}:
+\begin{figure}[!h]
+    \centering
+    \begin{subfigure}{0.4\textwidth}
+        \includegraphics[scale=0.09]{takeoff_angle_overlay.jpg}
+        \caption{Poses shown as overlay}
+    \end{subfigure}
+    \begin{subfigure}{0.4\textwidth}
+        \includegraphics[scale=0.09]{takeoff_angle_no_overlay.jpg}
+        \caption{Extracted vectors and positions}
+    \end{subfigure}
+    \caption[Takeoff angle]{Takeoff frame annotated with the
+    \textcolor{green}{two vectors} that define the takeoff angle marked
+    green.\\}
+    \label{fig:4_takeoff_angle_calculation}
+\end{figure}
+\FloatBarrier
+\noindent The horizontal vector in above \autoref{fig:4_takeoff_angle_calculation}
+represents $\vec{h_t}$ in \autoref{eq:takeoff_angle} and the other vector
+visualizes $\vec{v_t}$ respectively.
+Moreover, the velocity vector is scaled by a factor of 20 due to visualization
+reasons.\\
+
 \subsubsection*{Saving analysis results}
+%TODO%
+%HDF5 FILE STRUCTURE FIG%
 
 \subsection{Automatic takeoff frame detection}\label{subsec:4_takeoff_detection}
 Generally, a long jump can be divided into three different phases, namely
@@ -375,8 +462,8 @@ approach phase ends and the jumping phase starts, ($PT_0$ in
 Thus, if a mathematical expression can be found for each phase respectively,
 the takeoff frame is found implicitly.
 The algorithm used for this task is based on the algorithm for a takeoff
-frame detection developed by xyz [CITE!].\\%TODO
-Other than supposed in xyz's work, the detection algorithm in this work is not
+frame detection developed by Muniz \cite{muniz_detection_2019}.\\
+Other than supposed in his work, the detection algorithm in this work is not
 based on the foot positions, but on the \ac{CM} position.
 There are several reasons for preferring the \ac{CM} over the foot positions.
 One of the most important reasons lies in the different jumping techniques,
@@ -646,7 +733,9 @@ similar to the manually annotated frame numbers.
 \end{figure}
 \FloatBarrier
 
-\subsubsection{Visualization in a \acs*{GUI}}\label{subsec:4_lj_software_gui}
+\subsection{Runtime considerations}\label{subsec:4_runtime_performance}
+
+\subsection{Visualization in a \acs*{GUI}}\label{subsec:4_lj_software_gui}
 
 \section{Hardware setup}\label{sec:4_hardware}
 In order to capture high-quality video recordings that cover a complete long 
@@ -776,35 +865,35 @@ resources to perform flight relevant calculations.\\
 A detailed comparison between both flight controllers is given in 
 \autoref{table:4_flight_cotroller_cmp}.
 \begin{table}[h!]
-\centering
-\begin{tabular}[c]{|p{4cm}||p{4cm}|p{4cm}|}
-\hline
-\multicolumn{3}{|c|}{Flight Controller Comparison}\\
-\hline
-Criteria & PixHawk & Navio2\\
-\hline
-\hline
-Processor & ARM Cortex M4 with FPU / 32-bit co-processor & Depends on Raspberry
-Pi version\\
-\hline
-Sensors & ST Micro 16-bti gyroscope, ST Micro 14-bit accelerometer, MEAS
-barometer & MPU9250 9DOF IMU, LSM9DS1 9DOF IMU, MS5611 Barometer, U-blox M8N 
-Glonass/\acs{GPS}/Beidou\\
-\hline
-Interfaces & UART, Spektrum DSM, PPM / S.BUS input, I2C, SPI, CAN, USB, 3.3V 
-and 6.6V ADC input, 8 \acs{PWM} outputs, 6 Auxiliary outputs & UART, I2C, ADC, PPM / 
-S.BUS input, 14 \acs{PWM} outputs\\
-\hline
-Dimensions\newline(W x H x L) in mm & $50 \times 15.5 \times 81.5$ & $55 \times 65$\\ 
-\hline
-Other & Failsafe options (e.g. extra power supply, \acs{GPS}, etc.) & None\\
-\hline
-Price (Eur.) & TBD & TBD\\
-\hline
-\end{tabular}
-\caption[Flight controller comparison]{Comparison between PixHawk and 
-Navio2 flight controller.}
-\label{table:4_flight_cotroller_cmp}
+    \centering
+    \begin{tabular}[c]{|p{4cm}||p{4cm}|p{4cm}|}
+    \hline
+    \multicolumn{3}{|c|}{Flight Controller Comparison}\\
+    \hline
+    Criteria & PixHawk & Navio2\\
+    \hline
+    \hline
+    Processor & ARM Cortex M4 with FPU / 32-bit co-processor & Depends on Raspberry
+    Pi version\\
+    \hline
+    Sensors & ST Micro 16-bti gyroscope, ST Micro 14-bit accelerometer, MEAS
+    barometer & MPU9250 9DOF IMU, LSM9DS1 9DOF IMU, MS5611 Barometer, U-blox M8N 
+    Glonass/\acs{GPS}/Beidou\\
+    \hline
+    Interfaces & UART, Spektrum DSM, PPM / S.BUS input, I2C, SPI, CAN, USB, 3.3V 
+    and 6.6V ADC input, 8 \acs{PWM} outputs, 6 Auxiliary outputs & UART, I2C, ADC, PPM / 
+    S.BUS input, 14 \acs{PWM} outputs\\
+    \hline
+    Dimensions\newline(W x H x L) in mm & $50 \times 15.5 \times 81.5$ & $55 \times 65$\\ 
+    \hline
+    Other & Failsafe options (e.g. extra power supply, \acs{GPS}, etc.) & None\\
+    \hline
+    Price (Eur.) & TBD & TBD\\
+    \hline
+    \end{tabular}
+    \caption[Flight controller comparison]{Comparison between PixHawk and 
+    Navio2 flight controller.}
+    \label{table:4_flight_cotroller_cmp}
 \end{table}
 
 \noindent As can be seen, both flight controllers offer different interfaces 
