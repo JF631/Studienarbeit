@@ -129,28 +129,30 @@ Furthermore, it is fully compatible with the \texttt{numpy} library, which
 allows for seamless conversion between numpy arrays and OpenCV image matrices.
 
 \subsection{HDF5 file format}\label{subsec:2_hdf5}
-To avoid analyzing the same jump, therefore the same video file, multiple 
-times, the jump parameters should be saved after the analysis process alongside
-with the annotated video file, that visualizes the detected body pose (see
-\autoref{fig:2_body_keypoints}).
-Because parameters such as knee angles, arm angles, ground contact, etc.\ need 
-to be stored frame-wise, a structured file format is suitable.\\
+After a jump analysis is completed, there are two files to be stored.
+One video file containing the actual body key point video analysis by showing
+the key points as overlay and another one holding the analyzed parameters.
+The second file especially requires the file format to be structured in order
+to be able to allocate the stored analysis parameters to their according video
+frame.\\
 One common open source structured file format is HDF5.
-It is an acronym for Hierarchical Data Format (Version 5) and is very helpful 
-to store large amounts of data as well as heterogeneous data. 
+It is an acronym for Hierarchical Data Format (Version 5) and is very efficient 
+to store large amounts of data as well as heterogeneous data.
 As the name already suggests, data is stored in a hierarchical, tree-like way.\\
 A HDF5 tree mainly consists of three pre-defined components that allow to 
 organize data in a file-system like fashion.
-The tree root, groups and datasets.
+Namely, those components are the tree root, groups and datasets.
 \textit{Groups} are folder-like structures that can either contain more groups 
 or Datasets.
 \textit{Datasets} hold the actual data that need to be stored.\\
 Furthermore, each level (tree root, groups and datasets) can hold additional 
 information via metadata.
-The metadata could for example contain information about metrics, timestamps or 
+The metadata could, for example, contain information about metrics, timestamps or 
 any other describing information.
 Therefore, each HDF5 file itself becomes a self-describing file that does not
 require any more than the included information to be interpreted correctly.\\
+Thus, it is chosen as primary analysis parameter storage format within this
+project.
 \begin{figure}[!h]
     \centering
     \includegraphics[scale=0.24]{figures/hdf5_general_structure.jpg}
@@ -161,8 +163,6 @@ require any more than the included information to be interpreted correctly.\\
 \end{figure}
 \FloatBarrier
 \noindent Within this work, one HDF5 file will be created per jump analysis.
-The frames are stored in a group each and the actual calculated parameters are 
-saved group-wise as datasets.
 
 \section{\acs*{GUI} development}
 The software that is developed within this work should be useable on-field to
