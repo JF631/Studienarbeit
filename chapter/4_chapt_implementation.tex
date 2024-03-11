@@ -335,28 +335,30 @@ The exact file structure is shown in following
 \autoref{fig:hdf5_file_structure_param_file}:
 \begin{figure}[h!]
     \centering
-    \begin{minipage}{0.5\textwidth}
-        \dirtree{%
-        .1 Root.
-        .2 \textcolor{cyan}{video\_file}.
-        .2 \textcolor{cyan}{transition\_points}.
-        .2 \textcolor{cyan}{takeoff\_vector}.
-        .2 Frame0.
-        .3 right\_foot\_x.
-        .3 right\_foot\_y.
-        .3 left\_foot\_x.
-        .3 left\_foot\_y.
-        .3 left\_knee\_angle.
-        .3 right\_knee\_angle.
-        .3 cm\_x.
-        .3 cm\_y.
-        .2 Frame1.
-        .3 \dots.
-        .2 Frame2.
-        .3 \dots.
-        .2 \dots.
+    \scalebox{0.8}{ % Adjust the scaling factor as needed
+        \begin{minipage}{0.5\textwidth}
+            \dirtree{%
+            .1 Root.
+            .2 \textcolor{cyan}{video\_file}.
+            .2 \textcolor{cyan}{transition\_points}.
+            .2 \textcolor{cyan}{takeoff\_vector}.
+            .2 Frame0.
+            .3 right\_foot\_x.
+            .3 right\_foot\_y.
+            .3 left\_foot\_x.
+            .3 left\_foot\_y.
+            .3 left\_knee\_angle.
+            .3 right\_knee\_angle.
+            .3 cm\_x.
+            .3 cm\_y.
+            .2 Frame1.
+            .3 \dots.
+            .2 Frame2.
+            .3 \dots.
+            .2 \dots.
+        }
+        \end{minipage}
     }
-    \end{minipage}
     \caption[HDF5 Parameter file structure]{HDF5 Parameter file structure}
     \label{fig:hdf5_file_structure_param_file}
 \end{figure}
