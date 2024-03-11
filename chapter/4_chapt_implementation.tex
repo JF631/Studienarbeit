@@ -184,9 +184,9 @@ Based on the previously detected body key points, the parameters shown in
 \autoref{fig:4_long_jump_sketch} can be calculated.
 Especially knee angles during the run up- and takeoff phase can give important
 insights into an athletes' overall jumping dynamics.
-On this occasion lower knee angles during the run up (toe off point) as well
-as during the takeoff (swing leg) were found to lead to better jumping
-results.
+In this context, lower knee angles during the run up (at the toe-off point) as
+well as during the takeoff (swing leg) were found to lead to better jumping
+results\cite{mattes_kinematic_2021}.
 Thus, theses parameters are calculated by the software and can be saved and
 visualized afterwards.
 In the following, the angle calculation is explained based on the knee angle
@@ -320,7 +320,7 @@ reasons.\\
 
 \subsubsection*{Saving analysis results}
 After a complete jump analysis has been performed, all data, especially
-the calculated parameters such as arm-/ knee angles need to be stored
+the calculated parameters such as arm- and knee angles need to be stored
 permanently.
 Thereby, each input video file must only be analyzed once in order to avoid
 costly double analysis.
@@ -378,14 +378,28 @@ Furthermore, there is a group created for each analyzed video frame.
 Within these groups there is one dataset created for each analysis parameter.\\
 
 \noindent To allow simple and efficient read- and write operations, the class
-\texttt{Parameterfile} is implemented which abstracts the described parameter
+\texttt{Parameterfile} is implemented, which abstracts the described parameter
 file.
-Thereby, for each input video frame one group in the according hdf5 file as
-well as one video frame needs to be saved.
-As this results in many memory accesses, the Parameterfile buffers some hdf5
-frame groups and then performs batch saving.
+Taking into consideration that, for each input video frame one group in the
+according hdf5 file as well as one annotated video frame needs to be saved,
+there are many memory accesses during the analysis process, which leads to
+poor runtime behavior.
+To reduce the number of memory accesses, the Parameterfile instances buffer
+some hdf5 frame groups and then perform batch saving.
 This effectively reduces the number of costly memory accesses, leading to
 a better performance behavior.
+The software uses a batch size of 128 by default.
+The \texttt{Parameterfile} class manages every access to all analysis parameters
+which are saved for each jump video analysis.
+All interactions that are supported can be seen in its' class diagram:
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[scale=0.6]{Parameterfile.pdf}
+    \caption[Parameterfile class diagram]{Parameterfile class diagram}
+    \label{fig:4_param_file_class_diagram}
+\end{figure}
+\FloatBarrier
 
 \subsection{Automatic takeoff frame detection}\label{subsec:4_takeoff_detection}
 Generally, a long jump can be divided into three different phases, namely
