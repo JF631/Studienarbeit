@@ -382,6 +382,8 @@ Within these groups there is one dataset created for each analysis parameter.\\
 \noindent To allow simple and efficient read- and write operations, the class
 \texttt{Parameterfile} is implemented, which abstracts the described parameter
 file.
+All HDF5 file interactions are implemented using the python
+h5py package\cite*{collette_python_hdf5_2014}.\\
 Taking into consideration that, for each input video frame one group in the
 according hdf5 file as well as one annotated video frame needs to be saved,
 there are many memory accesses during the analysis process, which leads to
@@ -390,11 +392,10 @@ To reduce the number of memory accesses, the Parameterfile instances buffer
 some hdf5 frame groups and then perform batch saving.
 This effectively reduces the number of costly memory accesses, leading to
 a better performance behavior.
-The software uses a batch size of 128 by default.
-The \texttt{Parameterfile} class manages every access to all analysis parameters
-which are saved for each jump video analysis.
-All interactions that are supported can be seen in its' class diagram:
-
+The software uses a batch size of 128 by default.\\
+Overall, the \texttt{Parameterfile} class manages all analysis file
+interactions.
+Possible interactions can be seen in its class diagram:
 \begin{figure}[!h]
     \centering
     \includegraphics[scale=0.6]{Parameterfile.pdf}
