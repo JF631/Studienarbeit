@@ -187,8 +187,8 @@ insights into an athletes' overall jumping dynamics.
 In this context, lower knee angles during the run up (at the toe-off point) as
 well as during the takeoff (swing leg) were found to lead to better jumping
 results\cite{mattes_kinematic_2021}.
-Thus, theses parameters are calculated by the software and can be saved and
-visualized afterwards.
+Thus, these parameters are calculated by the software and can be saved and
+visualized afterwards.\\
 In the following, the angle calculation is explained based on the knee angle
 calculation.
 Taking the relevant detected key points into consideration, following
@@ -383,13 +383,15 @@ Within these groups there is one dataset created for each analysis parameter.\\
 \texttt{Parameterfile} is implemented, which abstracts the described parameter
 file.
 All HDF5 file interactions are implemented using the python
-h5py package\cite*{collette_python_hdf5_2014}.\\
-Taking into consideration that, for each input video frame one group in the
-according hdf5 file as well as one annotated video frame needs to be saved,
+h5py package\cite*{collette_python_hdf5_2014}, which offers dedicated methods
+for creating a whole HDF5 file as well as methods for creating groups,
+datasets and metadata.\\
+Taking into consideration that, for each input video frame, one group in the
+according HDF5 file as well as one annotated video frame needs to be saved,
 there are many memory accesses during the analysis process, which leads to
 poor runtime behavior.
 To reduce the number of memory accesses, the Parameterfile instances buffer
-some hdf5 frame groups and then perform batch saving.
+some HDF5 frame groups and then perform batch saving.
 This effectively reduces the number of costly memory accesses, leading to
 a better performance behavior.
 The software uses a batch size of 128 by default.\\
@@ -403,6 +405,9 @@ Possible interactions can be seen in its class diagram:
     \label{fig:4_param_file_class_diagram}
 \end{figure}
 \FloatBarrier
+\noindent In above \autoref{fig:4_param_file_class_diagram} the
+\texttt{load()} method and all \texttt{get\_x()} methods are used to retrieve
+analysis parameters from saved Parameterfiles.
 
 \subsection{Automatic takeoff frame detection}\label{subsec:4_takeoff_detection}
 Generally, a long jump can be divided into three different phases, namely
