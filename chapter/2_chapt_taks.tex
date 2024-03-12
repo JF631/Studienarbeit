@@ -9,10 +9,12 @@ Each main task is divided into several sub-tasks.
     \item[Task 1] Develop a platform independent computer software to analyze 
     pre-recorded long-jump videos.
     \begin{enumerate}
-        \item Integrate a body detection system.
-        \item Define an analysis output standard.
-        \item Develop an algorithm to automatically detect the take-off frame. 
-        \item Implement a \acs*{GUI} to visualize analysis results.
+        \item Implement a video processing pipeline to analyse a jump regarding 
+        a fixed set of parameters.
+        \item Develop an algorithm to automatically detect the take-off frame.
+        \item Define and implement an analysis output standard.
+        \item Validate the performance to allow on-field jump analysis 
+        \item Implement a \acs*{GUI} to visualize the analysis results.
     \end{enumerate}
     \item[Task 2] Build a quadcopter as hardware companion for recording 
     long-jump videos. This specifically requires a camera as well as several
@@ -23,27 +25,18 @@ Each main task is divided into several sub-tasks.
         station.
         \item extend the quadcopter with a companion computer and a compatible
         camera to live stream videos.
-        \item test the camera accuracy.
     \end{enumerate}
     \item[Task 3] Implement a software that allows to control the drone from a
     ground station.
     \begin{enumerate}
         \item Set up a wireless connection to the quadcopter.
-        \item Define a communication protocol.
-        \item Integrate the control mechanism in the \acs*{GUI}.
-        \item Integrate a start measurement like mechanism.
+        \item Implement a drone control offering movement control.
+        \item Integrate the drone control in the \acs*{GUI}
     \end{enumerate}
     \item[Task 4] Develop a software to handle the incoming video livestream.
     \begin{enumerate}
         \item Establish a connection to the on-board companion computer.
         \item Display the video frames in the \acs*{GUI}.
         \item Offer the option for a rudimentary live analysis.
-    \end{enumerate}
-    \item[Task 5] Develop a software that can control the drone autonomously.
-    \begin{enumerate}
-        \item Establish between an on-board companion computer and PixHawk
-        flight controller.
-        \item Implement an on-board body detection system.
-        \item Develop an auto-follow like controlling feature. 
     \end{enumerate}
 \end{description}

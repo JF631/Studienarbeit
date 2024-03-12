@@ -270,7 +270,7 @@ As shown in~\cite{seyfarth_optimum_2000}, even small deviations of around
 1\textdegree\ of the optimal takeoff angle can lead to shorter measured
 distances (see \autoref{fig:4_long_jump_sketch}) of up to 5~cm.
 The optimum takeoff angle differs between athletes and is especially
-correlated to the takeoff speed~\cite{tsuboi_mathematical_2010}.\\
+correlated to the takeoff speed~\cite{tsuboi_mathematical_2010-1}.\\
 To calculate the takeoff angle, two vectors are needed.
 The first vector is a horizontal vector origin in the athletes \ac{CM}.
 The second vector represents the athletes'velocity, which, in this case, 
@@ -318,113 +318,23 @@ visualizes $\vec{v_t}$ respectively.
 Moreover, the velocity vector is scaled by a factor of 20 due to visualization
 reasons.\\
 
-\subsubsection*{Saving analysis results}
-After a complete jump analysis has been performed, all data, especially
-the calculated parameters such as arm- and knee angles need to be stored
-permanently.
-Thereby, each input video file must only be analyzed once in order to avoid
-costly double analysis.
-While the detected body key points are stored in form of an annotated video
-file, the analysis parameters are stored alongside in a separate file which
-can be re-loaded and visualized.
-This file will in the following be referred to as \texttt{Parameter file}.\\
-As most of the parameters are calculated frame-wise (like knee angles, foot
-positions, \dots), the well-structured hdf5 file format (see
-\autoref{subsec:2_hdf5}) is used for this task.
-The exact file structure is shown in following 
-\autoref{fig:hdf5_file_structure_param_file}:
-\begin{figure}[h!]
-    \centering
-    \scalebox{0.8}{ % Adjust the scaling factor as needed
-        \begin{minipage}{0.5\textwidth}
-            \dirtree{%
-            .1 Root.
-            .2 \textcolor{cyan}{video\_file}.
-            .2 \textcolor{cyan}{transition\_points}.
-            .2 \textcolor{cyan}{takeoff\_vector}.
-            .2 Frame0.
-            .3 right\_foot\_x.
-            .3 right\_foot\_y.
-            .3 left\_foot\_x.
-            .3 left\_foot\_y.
-            .3 left\_knee\_angle.
-            .3 right\_knee\_angle.
-            .3 cm\_x.
-            .3 cm\_y.
-            .2 Frame1.
-            .3 \dots.
-            .2 Frame2.
-            .3 \dots.
-            .2 \dots.
-        }
-        \end{minipage}
-    }
-    \caption[HDF5 Parameter file structure]{HDF5 Parameter file structure}
-    \label{fig:hdf5_file_structure_param_file}
-\end{figure}
-\FloatBarrier
-\noindent As can be seen in above \autoref{fig:hdf5_file_structure_param_file},
-each hdf5 file contains three \textcolor{cyan}{metadata} parameters.
-They do not belong to a certain frame and represent important analysis results
-that take several frames into consideration.
-Furthermore, these parameters can be accessed efficiently.
-The \texttt{transition\_points} metadata contains the phase transition points
-(see \autoref{fig:4_long_jump_sketch}), whereas \texttt{takeoff\_vector} is a
-tuple of the form ($\theta_{\text{takeoff}}, \vec{{}v}_t$) according to
-\autoref{eq:takeoff_angle}.
-As one of the shown Parameter files is created per jump analysis, an annotated
-video file belongs to each of those files.
-Thus, a connection to the related video file is saved in the
-Parameter file in form of the \texttt{video\_file} metadata.\\
-Furthermore, there is a group created for each analyzed video frame.
-Within these groups there is one dataset created for each analysis parameter.\\
-
-\noindent To allow simple and efficient read- and write operations, the class
-\texttt{Parameterfile} is implemented, which abstracts the described parameter
-file.
-All HDF5 file interactions are implemented using the python
-h5py package\cite*{collette_python_hdf5_2014}, which offers dedicated methods
-for creating a whole HDF5 file as well as methods for creating groups,
-datasets and metadata.\\
-Taking into consideration that, for each input video frame, one group in the
-according HDF5 file as well as one annotated video frame needs to be saved,
-there are many memory accesses during the analysis process, which leads to
-poor runtime behavior.
-To reduce the number of memory accesses, the Parameterfile instances buffer
-some HDF5 frame groups and then perform batch saving.
-This effectively reduces the number of costly memory accesses, leading to
-a better performance behavior.
-The software uses a batch size of 128 by default.\\
-Overall, the \texttt{Parameterfile} class manages all analysis file
-interactions.
-Possible interactions can be seen in its class diagram:
-\begin{figure}[!h]
-    \centering
-    \includegraphics[scale=0.6]{Parameterfile.pdf}
-    \caption[Parameterfile class diagram]{Parameterfile class diagram}
-    \label{fig:4_param_file_class_diagram}
-\end{figure}
-\FloatBarrier
-\noindent In above \autoref{fig:4_param_file_class_diagram} the
-\texttt{load()} method and all \texttt{get\_x()} methods are used to retrieve
-analysis parameters from saved Parameterfiles.
-
 \subsection{Automatic takeoff frame detection}\label{subsec:4_takeoff_detection}
 Generally, a long jump can be divided into three different phases, namely
 approach, jump and landing.
-In \autoref{fig:4_long_jump_sketch} an overview over the phases is given,
-where the takeoff phase is represented by the first phase changing point.\\
-Each phase demands different requirements from an athlete. 
-However, the takeoff phase is the last phase in which an athlete is able to
-actively influence the most important jumping conditions.
+In \autoref{fig:4_long_jump_sketch}, an overview of the phases is presented,
+with the takeoff phase denoted by the first phase transition point ($PT_0$).\\
+Of all phases, understanding the dynamics of the takeoff phase is especially
+important, as it represents the last opportunity for an athlete to actively
+influence critical jumping conditions (e.g.\ takeoff speed, takeoff angle,
+\dots).
 Within this short\footnote{0.1s - 0.2s\cite{mechanical_power_long_jump}} time
-period the initial kinetic run-up energy is transformed into jumping energy.
-Especially the velocity vector of an athletes' \ac{CM} changes its direction
+period the initial kinetic run-up energy is mostly transformed into elastic
+energy\cite{wittersModelElasticTake1992}.\\
+Moreover, the velocity vector of an athletes' \ac{CM} changes its direction
 in the moment of the takeoff, as illustrated in
 \autoref{fig:4_long_jump_sketch}.
 The forces produced during the takeoff strongly influence the resulting
-jumping distance. 
-Thus, it is important to understand its dynamics.\\
+jumping distance\cite{hayCitiusAltiusLongius1993}.\\
 Due to the short time period a takeoff takes, it can be difficult to detect
 the takeoff frame in a long jump video in order to be able to analyze the
 exact pre-jump conditions.\\\\
@@ -432,13 +342,13 @@ However, especially to allow for an on-field jumping analysis, a quick takeoff
 frame detection is crucial.
 Thus, an algorithm that can automatically detect the takeoff frame in a long
 jump video is implemented in the following.\\\\
-As the automatic takeoff frame detection is based on the parameters listed in
-\autoref{sec:4_analysis_software}, the left and right
+As the takeoff frame detection in this project is based on the parameters
+listed in \autoref{sec:4_analysis_software}, the left and right
 foot position as well as the position of the \ac{CM} were analyzed in
 pre-recorded long jump videos of male long jumpers at different professional
 levels reaching from hobby- to olympian athlete.
 Moreover, the videos used differ in their length and quality as well as in the
-jumping part they show (e.g.\ video 2 does not show the full run-up).
+jumping part they show (e.g.\ some videos do not show the full run-up).
 The results of three exemplary video analysis are shown in
 \autoref{fig:4_angles_height_plot}.
 In order to develop an accurate takeoff point detection, the takeoff frame was
@@ -448,8 +358,8 @@ The presented data has not been cleaned up in any way.
 This can especially be seen in the first and last analysis, in which the
 position and angle data is not accurate due to body key point detection
 inaccuracies.
-These inaccuracies however are not of great interest as the key points are
-detected correctly during the approach after a few frames.\\\\
+These inaccuracies however are not of great interest at this point as the key
+points are detected correctly during the approach after a few frames.\\\\
 In each analysis the left and right foot positions as well as the
 according knee angles interchange from step to step.
 The relative \ac{CM} height remains on the same level during the approach.\\
@@ -462,8 +372,8 @@ In the moment of the takeoff, the knee angle of the jumping leg is above 170
 degree, meaning the jumping leg is fully extended.
 The swing legs' knee angle varies in the shown examples around 100 degree.\\\\
 The visually most significant change which happens in the moment of the
-takeoff and is therefore the most meaningful measured parameter that indicates
-the takeoff is \ac{CM}'s rapid height change.
+takeoff and is therefore considered the most meaningful measured parameter
+that indicates the takeoff is the \ac{CM}'s rapid height change.
 Thus, the automatic takeoff detection is developed based on this parameter.\\
 To approach the detection of the change in the \ac{CM}s' vertical
 velocity, a mathematical description of its position during the jump is
@@ -579,6 +489,10 @@ The approach and the landing can be fitted using a linear expression.\\
 Thus, two linear regressions are performed separately to find two expressions
 of the form
 \begin{equation}\label{eq:linear_function}
+    \\y = \beta_0 + \beta_1t
+\end{equation}
+which directly yields following linear regression function:
+\begin{equation}\label{eq:linear_reg_function}
     \\y_i = \beta_0 + \beta_1t_i + \epsilon_i
     \quad\quad
     i = \text{start},\ \dots\ ,\text{end}
@@ -588,7 +502,7 @@ start and end represent the first and last frame index that should be
 considered in the linear regression.
 For the approach phase this leads to $start = 0$ and $end = TP_0 - 1$, the
 landing phase is accordingly represented by $start = TP_1$ and $end = n - 1$.\\
-\autoref{eq:linear_function} can also be expressed as matrix equation:
+\autoref{eq:linear_reg_function} can also be expressed as matrix equation:
 \begin{equation}\label{eq:linear_reg_matrix}
     \underbrace{
     \begin{bmatrix}
@@ -631,7 +545,7 @@ To measure the error, the \ac{SSE} is used:
 \begin{equation}
     E_{SSE} = \sum_{i=start}^{end} \epsilon_i^2 = \sum_{i=start}^{end} (h_i - y_i)^2
 \end{equation}
-Using the simple linear expression from \autoref{eq:linear_function},
+Using the simple linear expression from \autoref{eq:linear_reg_function},
 following error function is found:
 \begin{equation}
     E_{SSE} = \sum_{i=start}^{end} (h_i - \beta_0 - \beta_1i)^2
@@ -662,10 +576,14 @@ The jumping phase cannot be approximated with a linear polynomial.
 However, as can be seen in \autoref{fig:4_angles_height_plot} after the marked
 takeoff point, the curve of the \ac{CM} height can be approximated using a
 parabola.
-Thus, quadratic regression is used to find a curve that describes the height
+Thus, a quadratic regression is used to find a curve that describes the height
 of the \ac{CM} during the jumping phase.
 The second order polynomial that needs to be found is of the form:
 \begin{equation}\label{eq:quadratic_function}
+    \\y = \beta_0 + \beta_1t + \beta_2t^2
+\end{equation}
+yielding the quadratic regression function:
+\begin{equation}\label{eq:quadratic_reg_function}
     \\y_i = \beta_0 + \beta_1t_i + \beta_2t_i^2 + \epsilon_i
     \quad\quad
     i = PT_0,\ \dots\ ,PT_1 - 1
@@ -820,11 +738,103 @@ similar to the manually annotated frame numbers.
 \end{figure}
 \FloatBarrier
 
+\subsection{Saving analysis results}
+After a complete jump analysis has been performed, all data, especially
+the calculated parameters such as arm- and knee angles need to be stored
+permanently.
+Thereby, each input video file must only be analyzed once in order to avoid
+costly double analysis.
+While the detected body key points are stored in form of an annotated video
+file, the analysis parameters are stored alongside in a separate file which
+can be re-loaded and visualized.
+This file will in the following be referred to as \texttt{Parameter file}.\\
+As most of the parameters are calculated frame-wise (like knee angles, foot
+positions, \dots), the well-structured hdf5 file format (see
+\autoref{subsec:2_hdf5}) is used for this task.
+The exact file structure is shown in following 
+\autoref{fig:hdf5_file_structure_param_file}:
+\begin{figure}[h!]
+    \centering
+    \scalebox{0.8}{ % Adjust the scaling factor as needed
+        \begin{minipage}{0.5\textwidth}
+            \dirtree{%
+            .1 Root.
+            .2 \textcolor{cyan}{video\_file}.
+            .2 \textcolor{cyan}{transition\_points}.
+            .2 \textcolor{cyan}{takeoff\_vector}.
+            .2 Frame0.
+            .3 right\_foot\_x.
+            .3 right\_foot\_y.
+            .3 left\_foot\_x.
+            .3 left\_foot\_y.
+            .3 left\_knee\_angle.
+            .3 right\_knee\_angle.
+            .3 cm\_x.
+            .3 cm\_y.
+            .2 Frame1.
+            .3 \dots.
+            .2 Frame2.
+            .3 \dots.
+            .2 \dots.
+        }
+        \end{minipage}
+    }
+    \caption[HDF5 Parameter file structure]{HDF5 Parameter file structure}
+    \label{fig:hdf5_file_structure_param_file}
+\end{figure}
+\FloatBarrier
+\noindent As can be seen in above \autoref{fig:hdf5_file_structure_param_file},
+each hdf5 file contains three \textcolor{cyan}{metadata} parameters.
+They do not belong to a certain frame and represent important analysis results
+that take several frames into consideration.
+Furthermore, these parameters can be accessed efficiently.
+The \texttt{transition\_points} metadata contains the phase transition points
+(see \autoref{fig:4_long_jump_sketch}), whereas \texttt{takeoff\_vector} is a
+tuple of the form ($\theta_{\text{takeoff}}, \vec{{}v}_t$) according to
+\autoref{eq:takeoff_angle}.
+As one of the shown Parameter files is created per jump analysis, an annotated
+video file belongs to each of those files.
+Thus, a connection to the related video file is saved in the
+Parameter file in form of the \texttt{video\_file} metadata.\\
+Furthermore, there is a group created for each analyzed video frame.
+Within these groups there is one dataset created for each analysis parameter.\\
+
+\noindent To allow simple and efficient read- and write operations, the class
+\texttt{Parameterfile} is implemented, which abstracts the described parameter
+file.
+All HDF5 file interactions are implemented using the python
+h5py package\cite*{collette_python_hdf5_2014}, which offers dedicated methods
+for creating a whole HDF5 file as well as methods for creating groups,
+datasets and metadata.\\
+Taking into consideration that, for each input video frame, one group in the
+according HDF5 file as well as one annotated video frame needs to be saved,
+there are many memory accesses during the analysis process, which leads to
+poor runtime behavior.
+To reduce the number of memory accesses, the Parameterfile instances buffer
+some HDF5 frame groups and then perform batch saving.
+This effectively reduces the number of costly memory accesses, leading to
+a better performance behavior.
+The software uses a batch size of 128 by default.\\
+Overall, the \texttt{Parameterfile} class manages all analysis file
+interactions.
+Possible interactions can be seen in its class diagram:
+\begin{figure}[!h]
+    \centering
+    \includegraphics[scale=0.6]{Parameterfile.pdf}
+    \caption[Parameterfile class diagram]{Parameterfile class diagram}
+    \label{fig:4_param_file_class_diagram}
+\end{figure}
+\FloatBarrier
+\noindent In above \autoref{fig:4_param_file_class_diagram} the
+\texttt{load()} method and all \texttt{get\_x()} methods are used to retrieve
+analysis parameters from saved Parameterfiles.
+
+
 \subsection{Runtime considerations}\label{subsec:4_runtime_performance}
 
 \subsection{Visualization in a \acs*{GUI}}\label{subsec:4_lj_software_gui}
 
-\section{Hardware setup}\label{sec:4_hardware}
+\section{Drone setup}\label{sec:4_hardware}
 In order to capture high-quality video recordings that cover a complete long 
 jump, from the first step all the way to the landing, a drone is used to fly
 next to the athlete throughout the whole process.
@@ -851,7 +861,7 @@ Generally the hardware was chosen based on the following criteria:
     \item size
 \end{itemize}
 
-\subsection*{Flight Hardware}\label{subsec:4_filght_hardware}
+\subsubsection{Flight Hardware}\label{subsec:4_filght_hardware}
 The main hardware that a quadcopter needs to fly will, in the following, be
 referred to as \textit{flight hardware}.
 This includes frame, motors, rotors, \acp{ESC} and a \ac{PDB}.\\
@@ -913,7 +923,7 @@ Put into context, this is a common rotation speed in commercial and hobby
 drone applications.
 Racing drones however, operate at motor speeds of up to 3500~KV.
 
-\subsection*{Control Hardware}\label{subsec:4_control_hardware}
+\subsubsection{Control Hardware}\label{subsec:4_control_hardware}
 In order to perform flight maneuvers with a quadcopter, each motor must be
 controllable individually.
 The calculation of the correct rotation speeds is generally performed by 
@@ -1007,7 +1017,7 @@ given.
 The general wiring is shown and explained before a short introduction of some 
 important communication protocols is given.
 
-\subsection*{General wiring}
+\subsubsection{General wiring}
 In the following \autoref{fig:4_general_wiring} the general wiring layout is 
 shown.
 The whole system is powered from one power source only.
@@ -1050,7 +1060,7 @@ The presented overall wiring is rather complex but allows relying on one power
 source only instead of using multiple power sources for flight hardware and
 control hardware including peripherals respectively.
 
-\subsection*{Communication between components}\label{subsec:4_comm}
+\subsubsection{Communication between components}\label{subsec:4_comm}
 The drone setup needs hardware components to communicate with each other in 
 order to transfer control signals from either the companion computer or from
 the ground station to the flight controller.
@@ -1090,3 +1100,11 @@ The idle state is set to a voltage that represents HIGH level on purpose, so
 that any connection failure is easily detectable.
 UART can work with any voltages to denote HIGH and LOW levels.
 In the quadcopter setup HIGH is represented by 5V and LOW by GND.
+
+\subsection{Recording and streaming videos}\label{subsec:4_rec_stream_video}
+
+\section{Controlling the drone}\label{sec:4_drone_ctrl}
+
+\subsection{Connection}\label{subsec:4_drone_conn}
+\subsection{Movement}\label{subsec:4_drone_mvmnt}
+\subsection{GUI control panel}\label{subsec:4_drone_ctrl_panel_gui}
