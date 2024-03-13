@@ -164,6 +164,55 @@ project.
 \FloatBarrier
 \noindent Within this work, one HDF5 file will be created per jump analysis.
 
+\subsection{Software overview}\label{subsec:3_versions}
+The software within this work is completely implemented using python.
+As the project supports a wide range of software features, a variety of
+different packages is used.
+The most relevant packages and frameworks are numpy for effient numerical
+operations, h5py for convenient HDF5 file operations and PyQt5 used for
+\ac{GUI} development.\\
+As the packages are combined into one software, an overview of the used
+packages is given:
+
+\begin{table}[h!]
+    \centering
+    \begin{tabular}[c]{|p{6cm}|p{6cm}|}
+    \hline
+    \multicolumn{2}{|c|}{\cellcolor{gray!20}Software package overview}\\
+    \hline
+    Package & Version number\\
+    \hline
+    \hline
+    \multicolumn{2}{|c|}{\cellcolor{cyan!15}Jump analysis}\\
+    \hline
+    mediapipe & 0.10.7\\
+    \hline
+    numpy & 1.26.1\\
+    \hline
+    opencv-python & 4.8.1.78\\
+    \hline
+    psutil & 5.9.6\\ 
+    \hline
+    h5py & 3.10.0\\
+    \hline
+    \multicolumn{2}{|c|}{\cellcolor{cyan!15}\acs*{GUI} development}\\
+    \hline
+    PyQt5 & 5.15.10\\
+    \hline
+    PythonQwt & 0.11.1\\
+    \hline
+    \multicolumn{2}{|c|}{\cellcolor{cyan!15}Drone control}\\
+    \hline
+    pymavlink & 2.4.41\\
+    \hline
+    pyserial & 3.5\\
+    \hline
+    \end{tabular}
+    \caption[Software overview]{Software package overview and their according
+    version numbers.}
+    \label{table:3_software_overview_version_num}
+\end{table}
+
 \section{\acs*{GUI} development}
 The software that is developed within this work should be useable on-field to
 allow for a fast analysis process.
