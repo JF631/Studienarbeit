@@ -4,7 +4,7 @@ This chapter focuses on the overall project's implementation.
 It mainly covers the four parts hardware assembly, long jump analysis,
 drone control and their consolidation into one \ac{GUI}.
 
-\section{Long-jump analysis software}\label{sec:4_analysis_software}
+\section{Long-jump analysis}\label{sec:4_analysis_software}
 In order to analyze recorded long jump videos a ground station software is
 developed.
 Generally, the analysis is performed regarding the following set of
@@ -831,6 +831,11 @@ analysis parameters from saved Parameterfiles.
 
 
 \subsection{Runtime considerations}\label{subsec:4_runtime_performance}
+The software is mainly developed towards a high key point detection and,
+thus, a high parameter calculation accuracy.
+However, as it is meant to be used as on-field analysis tool, quick
+analysis times are important.
+Hence, in the following, some important run times are shown and discussed.
 
 \subsection{Visualization in a \acs*{GUI}}\label{subsec:4_lj_software_gui}
 

@@ -165,12 +165,17 @@ project.
 \noindent Within this work, one HDF5 file will be created per jump analysis.
 
 \subsection{Software overview}\label{subsec:3_versions}
-The software within this work is completely implemented using python.
-As the project supports a wide range of software features, a variety of
+The software within this work is implemented using python (see
+\autoref{subsec:2_programming_language}).
+As it supports a wide range of software features, a variety of
 different packages is used.
-The most relevant packages and frameworks are numpy for effient numerical
-operations, h5py for convenient HDF5 file operations and PyQt5 used for
-\ac{GUI} development.\\
+The most relevant packages and frameworks are numpy for efficient numerical
+operations, h5py for convenient HDF5 file operations and PyQt5, which is used
+for the \ac{GUI} development.\\
+Moreover, the software has been implemented and tested using Python
+3.11.5 and is backward compatible up to Python 3.9.
+Python 3.12 is explicitly not supported, as the mediapipe framework not yet
+supports this version.
 As the packages are combined into one software, an overview of the used
 packages is given:
 
