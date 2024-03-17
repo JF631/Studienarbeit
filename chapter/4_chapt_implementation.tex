@@ -234,7 +234,7 @@ As the knee- and arm angle calculations have to be done for each video frame,
 they have to be implemented efficiently not to negatively influence the
 overall analysis time.
 Thus, numpy is used to perform the calculations.
-\begin{pythoncode}[caption=Angle calculation,label=lst:angle_calc_algo]
+\begin{pythoncode}[caption=Angle calculation,label=alg:angle_calc_algo]
     def calc_angle(first_vec, second_vec):
         first_vec_norm = np.linalg.norm(first_vec)
         second_vec_norm = np.linalg.norm(second_vec)
@@ -294,7 +294,7 @@ for the takeoff angle:
 \end{equation}
 where $\vec{h_t}$ denotes any horizontal vector, e.g. $\vec{h_t} = [1, 0]$.\\
 \autoref{eq:takeoff_angle} is calculated by using the function shown in
-\autoref{lst:angle_calc_algo} by passing the two vectors shown in following
+\autoref{alg:angle_calc_algo} by passing the two vectors shown in following
 \autoref{fig:4_takeoff_angle_calculation}:
 \begin{figure}[!h]
     \centering
@@ -831,11 +831,79 @@ analysis parameters from saved Parameterfiles.
 
 
 \subsection{Runtime considerations}\label{subsec:4_runtime_performance}
-The software is mainly developed towards a high key point detection and,
+The software is mainly developed towards a high key point detection and
 thus, a high parameter calculation accuracy.
-However, as it is meant to be used as on-field analysis tool, quick
+However, as it is meant to be used as an on-field analysis tool, quick
 analysis times are important.
-Hence, in the following, some important run times are shown and discussed.
+Hence, in the following, some important run times are shown and discussed.\\
+Generally, here are two main runtime critical parts in the jump analysis
+process: first, the key point detection and second, the takeoff frame
+detection.
+The first one mainly depends on the users' choice of the underlying key point
+detection model (evaluated later).
+The latter one however performs many numerical operations.
+As a result, it can potentially profit from pre-compiled implementations
+using \texttt{numba} (see \autoref{subsec:3_precompile_numba}).\\
+To validate this assumption some runtime comparisons based on video inputs of
+10 seconds length are performed.
+One is recorded at 60 \ac{FPS} and the other one at 90 \ac{FPS},
+resulting in 600 and 900 frames respectively.
+The results are presented in following
+\autoref*{fig:takeoff_frame_detection_performance}:
+\begin{figure}[!h]
+    \begin{subfigure}[b]{0.48\textwidth}
+        \includegraphics*[height=5cm]{absolute_runtime.png} % Adjust the height as needed
+        \caption{Absolute runtime comparison.\\
+        Error bars represent the standard deviation.}
+        \label{subfig:absolute_runtime_tkf_frame}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \includegraphics*[height=5cm]{relative_throughput.png} 
+        \caption{Normalized throughput comparison.\\
+        Values are directly proportional to the runtime shown in (a).}
+        \label{subfig:relative_throughput_tkf_frame}
+    \end{subfigure}
+    \caption[Takeoff frame detection performance]{Runtime and throughput
+    comparison between pre-compiled (\texttt{numba}) and non
+    pre-compiled takeoff frame detection implementations.}
+    \label{fig:takeoff_frame_detection_performance}
+\end{figure}
+\FloatBarrier
+\noindent As can be seen the takeoff frame detection generally scales
+according to $\mathcal{O}(n^2)$, where n is the number of analyzed video
+frames (explained in \autoref{subsec:4_takeoff_detection}).\\
+However, the takeoff frame detection significantly profits from the pre
+-compiled numba implementation.
+The absolute runtime is reduced by over 80\%, increasing the throughout by a
+factor of around 5.5.
+Thus, the final takeoff frame detection is implemented using \texttt{numba}s'
+JIT compiler.\\
+The two evaluated implementations differ in the way they perform the necessary
+regressions (see Algorithm \ref{alg:angle_calc_algo} for details).
+While the python implementation relies on \texttt{numpy}'s
+polyfit\footnote{\url{https://numpy.org/doc/stable/reference/generated/numpy.polyfit.html}}
+method, the pre-compiled \texttt{numba} implementation uses a custom
+regression implementation which is set up according to equations
+\ref{eq:linear_reg_matrix} to \ref{eq:normal_equation}.
+A custom implementation is chosen, as the polyfit method offered by
+\texttt{numpy} cannot be pre-compiled using \texttt{numba}.
+The complete implementation is not shown, however, the main function is
+presented in order to demonstrate the (simple) usage of \texttt{numba}:
+
+\begin{pythoncode}[caption=Polynomial regression,label=alg:poly_fit_numba]
+    import numba as nb
+
+    @nb.jit('f8[:](f8[:], f8[:], i8)')
+    def _fit_poly(x, y, deg):
+        a = _coeff_mat(x, deg)
+        p = _fit_x(a, y)
+        return p[::-1] # ensure p[0] to be the highest order coefficient
+\end{pythoncode}
+The methods \texttt{\_coeff\_mat} and \texttt{\_fit\_x} represent
+\autoref{eq:linear_reg_matrix} and \autoref{eq:normal_equation} respectively.
+\texttt{\_fit\_x} uses the least-sqaures fit approach shwon in
+\autoref{eq:gradient_linear_case}.
 
 \subsection{Visualization in a \acs*{GUI}}\label{subsec:4_lj_software_gui}
 

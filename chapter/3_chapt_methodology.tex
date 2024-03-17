@@ -164,6 +164,15 @@ project.
 \FloatBarrier
 \noindent Within this work, one HDF5 file will be created per jump analysis.
 
+\subsection{Precompiling Python code using Numba}\label{subsec:3_precompile_numba}
+Built-in Python functions as well as some \texttt{numpy} functions can be
+sped up using the Python \textit{Just-in-time compiler} \texttt{numba}
+\cite{lamNumbaLLVMbasedPython2015}.
+This compiler is based on the LLVM compiler structure and generates
+\ac{CPU} specific, optimized machine code.
+This is especially helpful in numerical heavy parts of the software, which can
+significantly benefit from pre-compiled code regarding their runtime behavior.
+
 \subsection{Software overview}\label{subsec:3_versions}
 The software within this work is implemented using python (see
 \autoref{subsec:2_programming_language}).
@@ -194,6 +203,10 @@ packages is given:
     \hline
     numpy & 1.26.1\\
     \hline
+    numba & 0.59.0\\
+    \hline
+    scipy & 1.12.0\\
+    \hline
     opencv-python & 4.8.1.78\\
     \hline
     psutil & 5.9.6\\ 
@@ -217,6 +230,7 @@ packages is given:
     version numbers.}
     \label{table:3_software_overview_version_num}
 \end{table}
+\FloatBarrier
 
 \section{\acs*{GUI} development}
 The software that is developed within this work should be useable on-field to
