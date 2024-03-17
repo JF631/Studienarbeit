@@ -852,7 +852,7 @@ The results are presented in following
 \autoref*{fig:takeoff_frame_detection_performance}:
 \begin{figure}[!h]
     \begin{subfigure}[b]{0.48\textwidth}
-        \includegraphics*[height=5cm]{absolute_runtime.png} % Adjust the height as needed
+        \includegraphics*[height=5cm]{absolute_runtime.png}
         \caption{Absolute runtime comparison.\\
         Error bars represent the standard deviation.}
         \label{subfig:absolute_runtime_tkf_frame}
@@ -894,16 +894,34 @@ presented in order to demonstrate the (simple) usage of \texttt{numba}:
 \begin{pythoncode}[caption=Polynomial regression,label=alg:poly_fit_numba]
     import numba as nb
 
-    @nb.jit('f8[:](f8[:], f8[:], i8)')
-    def _fit_poly(x, y, deg):
-        a = _coeff_mat(x, deg)
-        p = _fit_x(a, y)
+    @nb.jit('f4[:](f4[:], f4[:], i4)') # numba decorator
+    def _fit_poly(x: np.ndarray, y: np.ndarray, deg: int):
+        A = _coeff_mat(x, deg) # creates design matrix
+        p = _fit_x(A, y) # solves Ax = y
         return p[::-1] # ensure p[0] to be the highest order coefficient
 \end{pythoncode}
 The methods \texttt{\_coeff\_mat} and \texttt{\_fit\_x} represent
 \autoref{eq:linear_reg_matrix} and \autoref{eq:normal_equation} respectively.
-\texttt{\_fit\_x} uses the least-sqaures fit approach shwon in
-\autoref{eq:gradient_linear_case}.
+\texttt{\_fit\_x} uses the least-squares fitting approach shown in
+\autoref{eq:gradient_linear_case} to find the best fitting model.\\
+As can be seen, the only difference to a standard python function definition
+is the \texttt{nb.jit() decorator} which wraps the \texttt{\_fit\_poly}
+function in \texttt{numba}s' jit function to pre-compile it when the function
+is first called (therefore the name \textit{Just-in-time compiler}).\\
+This behavior can potentially lead to a large execution overhead before the
+function can be executed for the first time.
+However, numba can also pre-compile the function when the application is
+launched to avoid long compiling processes during runtime.
+This is achieved by passing the parameter types to numba
+(\texttt{'f4[:](f4[:], f4[:], i4)'}), where f4 denotes a standard 32 bit
+single precision float, i4 a standard 32 bit integer value and [:] their array
+types respectively.
+Moreover, the first \texttt{f4[:]} defines the functions' return type
+as an array of 32 bit floats.\\
+Numba needs that extra information to pre-compile the function, as the
+functions' parameter types cannot be derived just by the function definition,
+as python generally is a dynamically typed language.
+
 
 \subsection{Visualization in a \acs*{GUI}}\label{subsec:4_lj_software_gui}
 
