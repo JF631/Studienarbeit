@@ -654,7 +654,7 @@ This can be done by minimizing the overall error $E_{total}$, which is defined
 as the sum of regression errors resulting from the three independent
 regressions performed (one per jumping phase):
 
-\begin{equation}
+\begin{equation}\label{eq:total_error}
     E_{total} = E_{approach} + E_{jump} + E_{landing}
 \end{equation}
 
@@ -864,23 +864,31 @@ The results are presented in following
         Values are directly proportional to the runtime shown in (a).}
         \label{subfig:relative_throughput_tkf_frame}
     \end{subfigure}
+    \vfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \includegraphics*[height=5cm]{absolute_runtime_900.png}
+        \caption{Absolute runtime comparison.\\}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \includegraphics*[height=5cm]{relative_throughput_900.png} 
+        \caption{Normalized throughput comparison.\\}
+    \end{subfigure}
     \caption[Takeoff frame detection performance]{Runtime and throughput
     comparison between pre-compiled (\texttt{numba}) and non
     pre-compiled takeoff frame detection implementations.}
     \label{fig:takeoff_frame_detection_performance}
 \end{figure}
 \FloatBarrier
-\noindent As can be seen the takeoff frame detection generally scales
+\noindent As can be seen, the takeoff frame detection generally scales
 according to $\mathcal{O}(n^2)$, where n is the number of analyzed video
-frames (explained in \autoref{subsec:4_takeoff_detection}).\\
-However, the takeoff frame detection significantly profits from the pre
--compiled numba implementation.
-The absolute runtime is reduced by over 80\%, increasing the throughout by a
-factor of around 5.5.
-Thus, the final takeoff frame detection is implemented using \texttt{numba}s'
-JIT compiler.\\
-The two evaluated implementations differ in the way they perform the necessary
-regressions (see Algorithm \ref{alg:angle_calc_algo} for details).
+frames (explained in \autoref{subsec:4_takeoff_detection}).
+Looking at a 900 frame video, this leads to $900 * 900 = 810*10^3$ loop runs.
+Moreover, in each iteration, three polynomial regressions are performed which
+leads to around $2.4*10^6$ regression operations.\\
+Due to that many regression operations, the two evaluated implementations
+differ in the way they perform the necessary regressions (see Algorithm
+\ref{alg:angle_calc_algo} for details).
 While the python implementation relies on \texttt{numpy}'s
 polyfit\footnote{\url{https://numpy.org/doc/stable/reference/generated/numpy.polyfit.html}}
 method, the pre-compiled \texttt{numba} implementation uses a custom
@@ -889,8 +897,7 @@ regression implementation which is set up according to equations
 A custom implementation is chosen, as the polyfit method offered by
 \texttt{numpy} cannot be pre-compiled using \texttt{numba}.
 The complete implementation is not shown, however, the main function is
-presented in order to demonstrate the (simple) usage of \texttt{numba}:
-
+presented in order to demonstrate the (simple) usage of \texttt{numba}:\\
 \begin{pythoncode}[caption=Polynomial regression,label=alg:poly_fit_numba]
     import numba as nb
 
@@ -903,7 +910,10 @@ presented in order to demonstrate the (simple) usage of \texttt{numba}:
 The methods \texttt{\_coeff\_mat} and \texttt{\_fit\_x} represent
 \autoref{eq:linear_reg_matrix} and \autoref{eq:normal_equation} respectively.
 \texttt{\_fit\_x} uses the least-squares fitting approach shown in
-\autoref{eq:gradient_linear_case} to find the best fitting model.\\
+\autoref{eq:gradient_linear_case} to find the best fitting model.
+Furthermore, the residuals (errors) which are needed (see 
+\autoref{eq:total_error}) are calculated via polynomial evaluation using
+Horner's method~\cite{fuentesFastEvaluationPolynomials2022}.\\
 As can be seen, the only difference to a standard python function definition
 is the \texttt{nb.jit() decorator} which wraps the \texttt{\_fit\_poly}
 function in \texttt{numba}s' jit function to pre-compile it when the function
@@ -920,8 +930,58 @@ Moreover, the first \texttt{f4[:]} defines the functions' return type
 as an array of 32 bit floats.\\
 Numba needs that extra information to pre-compile the function, as the
 functions' parameter types cannot be derived just by the function definition,
-as python generally is a dynamically typed language.
+as python generally is a dynamically typed language.\\\\
+\noindent Taking the implementations and
+\autoref{fig:takeoff_frame_detection_performance} into account, the takeoff
+frame detection significantly profits from the pre -compiled numba
+implementation.
+The absolute runtime is reduced by over 80\%, increasing the throughout by a
+factor of around 5.5.
+Thus, the final takeoff frame detection is implemented using \texttt{numba}s'
+JIT compiler.\\\\
 
+\noindent The other runtime crucial part is the body keypoint detection.
+As aforementioned, mediapipe offers three different BlazePose keypoint
+detection models differing in terms of accuracy and performance.
+All three models are implemented, thus their inference times are compared.
+As the final analysis will be performed on videos of size 1920 x 1080, the
+performance is tested on video frames of this size.
+The results are presented in following:
+\begin{figure}[!h]
+    \begin{subfigure}[b]{0.48\textwidth}
+        \includegraphics*[height=5cm]{inference_time_models.png}
+        \caption{Absolute inference time comparison.\\
+        Error bars represent the standard deviation.}
+        \label{subfig:absolute_inference_times}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \includegraphics*[height=5cm]{inference_fps_models.png} 
+        \caption{Theoretically achievable \acs*{FPS} comparison.\\
+        Values are directly proportional to the runtime shown in (a).}
+        \label{subfig:relative_inference_fps}
+    \end{subfigure}
+    \caption[Inference time comparison]{Inference time comparison of all three
+    mediapipe pose detection models.}
+    \label{fig:mp_model_inference_time_comparison}
+\end{figure}
+\FloatBarrier
+\noindent As can be seen in above \autoref{fig:mp_model_inference_time_comparison}
+the inference times significantly differ between the three BlazePose pose
+detection models.
+While the full, thus most complex and most accurate detection model achieves
+speeds of up to around 10~\ac{FPS}, the light model can evaluate up to
+40~\ac{FPS}.
+This means latter one can theoretically even be used as a real time analysis
+option for video recordings at 30~\ac{FPS}.
+However, as this work focuses on the video analysis, the real time
+capabilities are not part of this works' scope.\\
+The parameter calculation (see \autoref*{sec:4_analysis_software}) is
+neglected in the runtime measurements, as they are much less computational
+expensive compared to the body key point detection and the takeoff frame
+detection.\\
+Considering the measured runtimes, a 900 frame video can be fully analyzed
+in around 90 seconds.
 
 \subsection{Visualization in a \acs*{GUI}}\label{subsec:4_lj_software_gui}
 
