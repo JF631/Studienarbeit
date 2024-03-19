@@ -836,7 +836,11 @@ thus, a high parameter calculation accuracy.
 However, as it is meant to be used as an on-field analysis tool, quick
 analysis times are important.
 Hence, in the following, some important run times are shown and discussed.\\
-Generally, here are two main runtime critical parts in the jump analysis
+All following evaluations were performed on a laptop equipped with an
+AMD Ryzen 5800U processor and 16GB of ram.
+This setup was chosen to represent a standard setup that can be used for an
+on-field analysis.\\
+Generally, there are two main runtime critical parts in the jump analysis
 process: first, the key point detection and second, the takeoff frame
 detection.
 The first one mainly depends on the users' choice of the underlying key point
@@ -980,10 +984,37 @@ The parameter calculation (see \autoref*{sec:4_analysis_software}) is
 neglected in the runtime measurements, as they are much less computational
 expensive compared to the body key point detection and the takeoff frame
 detection.\\
-Considering the measured runtimes, a 900 frame video can be fully analyzed
-in around 90 seconds.
+Thus, a full long jump video of 10~sec lengths (60~\ac{FPS}) can be fully
+analyzed in around a minute.
 
 \subsection{Visualization in a \acs*{GUI}}\label{subsec:4_lj_software_gui}
+To present the jump analysis, a \ac{GUI} is implemented.
+This \ac{GUI} is mainly developed regarding three purposes:
+\begin{enumerate}
+    \item Choose video file and analysis parameters.
+    \item Present analysis results while the analysis is running.
+    \item Present the fully analyzed video and the calculated parameters. 
+\end{enumerate}
+\noindent In the following, the \ac{GUI} will be shown and explained in two
+steps.
+First, the file first and second point in above listing will be shown
+and secondly, the full analysis visualization is presented.\\\\
+\noindent Mainly
+\noindent The second point allows an athlete (or trainer) to analyze \textit{
+single frame parameters} while the video is still being evaluated.
+Single frame parameters are those, that do not need all frames to be evaluated
+but just rely on the current frame (e.g. knee angles and arm angles).
+In contrast a full analysis includes all other parameters, such as the takeoff
+frame and the takeoff angle.
+This allows to reduce the actual on-field analysis times, as a first overall
+jumping impression can be offered immediately.\\\\
+\begin{figure}[h!]
+    \centering
+    \includegraphics[scale=0.3]{GUI_running_analysis.png}
+    \caption[Analysis \acs*{GUI}]{\acs*{GUI} shown while the video analysis
+    is running.}
+    \label{fig:4_gui_analysis_running}
+\end{figure}
 
 \section{Drone setup}\label{sec:4_hardware}
 In order to capture high-quality video recordings that cover a complete long 
