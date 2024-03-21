@@ -60,7 +60,7 @@ The whole process is visualized below in \autoref{fig:4_video_pipeline}.
 \noindent In the following subsections each of the shown processing stages
 will be explained in detail.
 
-\subsubsection*{Pre-processing via filter application}
+\subsubsection*{Pre-processing via filter application}\label{subsubsec:4_filter_processing}
 The first stage is meant to prepare the incoming video frames to get the best
 possible result from the following pose detection stage.
 Thus, this stage will in the following be referred to as \textit{pre
@@ -1007,14 +1007,33 @@ but just rely on the current frame (e.g. knee angles and arm angles).
 In contrast a full analysis includes all other parameters, such as the takeoff
 frame and the takeoff angle.
 This allows to reduce the actual on-field analysis times, as a first overall
-jumping impression can be offered immediately.\\\\
+jumping impression can be offered immediately.\\
+The \ac{GUI} that is used for the first and second point (see above) is
+presented below:
 \begin{figure}[h!]
     \centering
-    \includegraphics[scale=0.3]{GUI_running_analysis.png}
+    \includegraphics[scale=0.9]{GUI_running_analysis.pdf}
     \caption[Analysis \acs*{GUI}]{\acs*{GUI} shown while the video analysis
     is running.}
     \label{fig:4_gui_analysis_running}
 \end{figure}
+\FloatBarrier
+\noindent As can be seen, the \ac{GUI} is split into three main parts.
+These are marked red, green and blue respectively in above
+\autoref{fig:4_gui_analysis_running}.\\
+The blue area is used to let the user choose important analysis parameters and
+show the analysis progress.
+The parameters are the filter function to be used (see
+\autoref{subsubsec:4_filter_processing}) as well as the key point detection
+accuracy (see \autoref{subsec:2_mediapipe_framework}) and the output mode.
+Moreover, the athlete can choose to get the velocity vector calculated and
+visualized in each frame.\\
+Above this \textit{analysis control panel}, there is the actual video widget,
+which is used to display the current video according to its current analysis
+progress. All analysis results, that the user chose (in the analysis control
+panel) are already visualized in this stage.
+Thus, a first evaluation can be performed while the analysis is still running. 
+
 
 \section{Drone setup}\label{sec:4_hardware}
 In order to capture high-quality video recordings that cover a complete long 
