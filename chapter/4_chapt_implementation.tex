@@ -1303,6 +1303,23 @@ UART can work with any voltages to denote HIGH and LOW levels.
 In the quadcopter setup HIGH is represented by 5V and LOW by GND.
 
 \subsection{Recording and streaming videos}\label{subsec:4_rec_stream_video}
+As the drone is meant to be used to support the long jump analysis process by
+recording the jump and send the captured video to a ground station, a complete
+video recording process is developed and implemented.\\
+This includes the hardware camera setup on the drone, as well as the
+communication between the ground station which initializes the video
+recording and the drone capturing the actual video.\\
+Generally, the RaspberryPi takes care of capturing the video recordings.
+It starts the video recoridng when it is triggered via the ground station and
+sends the recorded video file back to the ground station where it is analyzed.
+Moreover, it offers a live stream of the current camera image to allow for
+aligning the drone correctly relative to the athlete.\\
+In the following, the implementations of the aforementioned features are shown
+in detail.
+
+\subsubsection{UDP sockets for communication}
+\subsubsection{Camera setup and video recording}
+\subsubsection{Live streaming the video feed}
 
 \section{Controlling the drone}\label{sec:4_drone_ctrl}
 
