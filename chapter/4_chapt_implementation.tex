@@ -738,7 +738,7 @@ similar to the manually annotated frame numbers.
 \end{figure}
 \FloatBarrier
 
-\subsection{Saving analysis results}
+\subsection{Saving analysis results}\label{subsec:4_param_files}
 After a complete jump analysis has been performed, all data, especially
 the calculated parameters such as arm- and knee angles need to be stored
 permanently.
@@ -991,15 +991,14 @@ analyzed in around a minute.
 To present the jump analysis, a \ac{GUI} is implemented.
 This \ac{GUI} is mainly developed regarding three purposes:
 \begin{enumerate}
-    \item Choose video file and analysis parameters.
+    \item Choose video files and analysis parameters.
     \item Present analysis results while the analysis is running.
     \item Present the fully analyzed video and the calculated parameters. 
 \end{enumerate}
 \noindent In the following, the \ac{GUI} will be shown and explained in two
 steps.
-First, the file first and second point in above listing will be shown
+At first, the first two points in above listing will be shown
 and secondly, the full analysis visualization is presented.\\\\
-\noindent Mainly
 \noindent The second point allows an athlete (or trainer) to analyze \textit{
 single frame parameters} while the video is still being evaluated.
 Single frame parameters are those, that do not need all frames to be evaluated
@@ -1027,12 +1026,33 @@ The parameters are the filter function to be used (see
 \autoref{subsubsec:4_filter_processing}) as well as the key point detection
 accuracy (see \autoref{subsec:2_mediapipe_framework}) and the output mode.
 Moreover, the athlete can choose to get the velocity vector calculated and
-visualized in each frame.\\
-Above this \textit{analysis control panel}, there is the actual video widget,
-which is used to display the current video according to its current analysis
-progress. All analysis results, that the user chose (in the analysis control
-panel) are already visualized in this stage.
-Thus, a first evaluation can be performed while the analysis is still running. 
+visualized in each frame.\\\\
+\noindent Above this \textit{analysis control panel}, there is the actual
+video widget, which is used to display the current video according to its
+current analysis progress. All analysis results, that the user chose (in the
+analysis control panel) are already visualized in this stage.
+Particularly, the detected position overlay (the body key points) are shown.  
+Thus, a first evaluation can be performed while the analysis is still running.\\\\
+\noindent On the right hand side (red box), the actual analysis results are
+visualized. In this stage, only single frame parameters are calculated and
+shown. More specifically, these are knee angles, left- / right foot positions
+as well as the hip height.
+By updating these curves successively for each analyzed frame, an overview of 
+the overall jumping progression is visualized over time.\\\\
+\noindent The \ac{GUI} changes its layout slightly once the analysis is
+finished to offer a more convenient way to interact with the analysis results
+and their respective Parameter files (see \autoref{subsec:4_param_files}).
+The \ac{GUI} layout for finished video analysis is presented in following
+figure: 
+\begin{figure}[h!]
+    \centering
+    \includegraphics[scale=0.7]{GUI_finished_analysis.pdf}
+    \caption[Analysis results \acs*{GUI}]{\acs*{GUI} shown once the video
+    analysis is finished or a completed analysis and its corresponding
+    parameter file is loaded.}
+    \label{fig:4_gui_analysis_finished}
+\end{figure}
+\FloatBarrier
 
 
 \section{Drone setup}\label{sec:4_hardware}
