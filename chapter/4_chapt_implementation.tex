@@ -1033,7 +1033,7 @@ current analysis progress. All analysis results, that the user chose (in the
 analysis control panel) are already visualized in this stage.
 Particularly, the detected position overlay (the body key points) are shown.  
 Thus, a first evaluation can be performed while the analysis is still running.\\\\
-\noindent On the right hand side (red box), the actual analysis results are
+\noindent On the right-hand side (red box), the actual analysis results are
 visualized. In this stage, only single frame parameters are calculated and
 shown. More specifically, these are knee angles, left- / right foot positions
 as well as the hip height.
@@ -1053,6 +1053,67 @@ figure:
     \label{fig:4_gui_analysis_finished}
 \end{figure}
 \FloatBarrier
+\noindent As can be seen, the analyzed video is presented in the main window (
+green box in above figure).
+Here, either the key points are shown as overlay over the video, or they are
+shown on a black background to emphasize the posture.\\
+Compared to \autoref{fig:4_gui_analysis_running} mainly the result area
+changes its layout.
+Especially, the full video parameters (takeoff frame- and angle) are
+shown.
+Moreover, the analyzed video playback starts with the automatically detected
+takeoff frame on which the calculated takeoff angle (and its according
+vectors) is annotated.\\
+Furthermore, the analysis area now shows the complete knee angle, foot
+positions and hip position plots created via the \texttt{matplotlib}
+library.
+Within these plots the frames corresponding to the phase transition points
+(see \autoref{fig:4_long_jump_sketch}) are marked red.
+Additionally, the currently visible frame is marked, too.
+This ensures the user to be able to visually keep track of the jumping stage
+shown in the current frame.
+If hovered over plots, the full values of the plots are shown at this exact
+frame number.
+Once the user clicks in a plot, the video playback jumps to the selected frame
+number.
+This way, the athlete can jump through important parts of their total jump
+according to the analyzed parameters.\\
+Furthermore, the software allows exporting single video frames as images to
+offer the athlete quick later access to important video frames (such as the
+takeoff frame).\\\\
+
+\noindent To allow for a convenient \ac{GUI} interaction while a video is
+being analyzed or their results are presented, the video is implemented as an
+own \texttt{Video} class that inherits from PyQt's \texttt{QRunnable} class.\\
+Objects of this class can generally be used to either start the analysis
+process or the video playback.
+As the class inherits from \texttt{QRunnable}, the analysis (and the video
+playback respectively) can run in a background thread which allows to keep the
+\ac{GUI} responsive.
+Furthermore, multiple video objects can theoretically run
+concurrently\footnote{In reality, this is limited by the number of available
+\ac{CPU} cores and especially by Pythons' Global Interpreter Lock (GIL)} by
+using PyQt's \texttt{QThreadPool}, allowing especially to perform multiple
+video analysis in parallel.
+Test runs have shown that two \ac{CPU} cores per video analysis lead to the
+best results when performing multiple analysis simultaneously.\\
+As the video is running in a background thread, it can not directly show its'
+frames in the \ac{GUI}s' main application thread.
+Thus, to visualize the video frames, PyQt's signal and slot mechanisms are
+used.
+Whenever a video frame is ready to be visualized, the corresponding video
+object emits a \texttt{visualize\_frame(Frame)} signal, where \texttt{Frame}
+is a custom class that abstracts a numpy video Frame object.
+The main thread has a slot to which this signal is connected.
+This way, video frames are visualized by the main thread only while the
+background threads are only responsible for the analysis and video loading.
+The overhead introduced by using signals and slots is not considered too
+large, as the \texttt{Frame} objects are passed by reference (meaning they
+are not copied).\\
+The interaction with the background video object is realized similarly using
+signals being emitted by the main thread (e.g. abort analysis, stop playback,
+jump to a specific frame,\ldots) and corresponding slots executing the actual
+action in the \texttt{Video} class.
 
 
 \section{Drone setup}\label{sec:4_hardware}

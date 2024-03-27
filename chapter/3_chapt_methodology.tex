@@ -232,7 +232,39 @@ packages is given:
 \end{table}
 \FloatBarrier
 
-%TODO: related work
+\section{Related work}\label{sec:3_related_work}
+As more advanced machine learning models are available, \ac{HPE} is a quickly
+growing field in the area of sports video analysis.
+There are generally two common approaches which have been established over the
+past few years.
+Namely, these are the more recently proposed
+Transformer~\cite{vaswaniAttentionAllYou2017} based \ac{HPE} models and the
+longer established \acp{CNN}.\\
+Mediapipe\cite{mediapipe_paper} belongs to the \ac{CNN} based models.
+Leddy et al.~\cite{leddyConcurrentValidityHuman2023} successfully used this
+framework to calculate joint angles in sport videos.
+Similar approaches using \ac{CNN} based architectures have been used by Yu
+et al.~\cite{yuAnalysisGuidanceStanding2023} to analyze standing long jumps. 
+Zhou et al.~\cite{zhouKinematicsParameterAnalysis2023} followed a similar
+approach to analyze athletes' motions during a long jump, starting from the
+takeoff.
+However, the mediapipe pose detection model has also recently been applied in
+other sport related fields.
+Aarthy et al.~\cite{aarthyYogaPoseDetection2023} used it to identify and
+analyze yoga positions which is more of a static task compared to long jump
+videos.\\
+Transformer based approaches are a more recent development which, instead of
+taking (small) image regions into consideration for feature extraction, take
+all pixels of an image into account to weigh their importance relatively
+to each other.
+Generally, these approaches are restricted in the set of key points they can
+detect.
+Recent developments \cite{ludwigRecognitionFreelySelected2022},
+\cite{ludwigDetectingArbitraryKeypoints2023} however paved the way for
+more complex body joint detection tasks.
+Building up on this, Ludwig et al.~\cite{ludwigAllKeypointsYou2023} developed
+a network capable of detecting arbitrary body key points in jumping videos.
+
 
 \section{\acs*{GUI} development}
 The software that is developed within this work should be useable on-field to
