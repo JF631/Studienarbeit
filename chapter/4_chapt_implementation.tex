@@ -394,8 +394,8 @@ indicators (\ac{CM} height and knee angles).
 The primary indicator is chosen as the \ac{CM} height, while the knee angles
 are chosen as secondary indicator.
 To detect the takeoff based on the primary indicator, a mathematical
-description of the \ac{CM} trajectory is modelled using multiple regressions.
-This allows for mathematically determining the takeoff point.
+description of the \ac{CM} trajectory is modelled using multiple regressions
+which allows for analytically determining the takeoff point.
 The secondary indicator is then used to verify the found takeoff frame.\\
 The process is explained in detail in the following.
 
@@ -1421,7 +1421,33 @@ allow for aligning the drone correctly relative to the athlete.\\
 In the following, the implementations of the aforementioned features are shown
 in detail.
 
-\subsubsection{Connection between the ground station and the on-board computer}
+\subsubsection{Connection between the ground station and the on-board computer}\label{subsubsec:4_pi_wifi}
+%TODO: insert connection diagram / figure (?)%
+In order to start or stop video recordings or capture images as well as to
+send video recordings back to the ground station, the on-board mounted
+RaspberryPi needs to communicate with the ground station.
+Furthermore, this connection is used to stream live images from the drone to
+the ground station, too.\\
+There are many implementations that use
+analog~\cite{tecpoyotl-torresRealtimeVideoTransmission2021} video transmission
+for live-streaming videos from \ac{FPV} drones.
+More recently, digital alternatives~\cite{silicQoEAssessmentFPV2021} with
+comparable latencies were developed.
+However, the live stream in this work is meant to be used for aligning the
+drone only, not for controlling it.
+Thus, the real-time requirements are less important.
+Furthermore, the connection is not only used to live-stream videos, but also
+to send commands (e.g. start video recording) and video files.
+Hence, the connection to the on-board computer is realized using a Wifi
+network.
+This is achieved by setting up the RaspberryPi as access point to which the
+ground station can then connect directly.\\
+This creates an arbitrarily useable connection which allows for quick
+transmission speeds.
+As the ground station and the drone are always used together on-field (which
+guarantees physical proximity), the limited Wifi transmission range is not
+considered as problematic for the following Implementations.
+%TODO: explain the actual implementation on  the Raspberry Pi%
 
 \subsubsection{TCP sockets for communication}\label{subsubsec:4_udp_sockets}
 Even though the video recording is performed by the on-board RaspberryPi
