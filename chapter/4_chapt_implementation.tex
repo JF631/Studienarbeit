@@ -342,18 +342,25 @@ However, especially to allow for an on-field jumping analysis, a quick takeoff
 frame detection is crucial.
 Thus, an algorithm that can automatically detect the takeoff frame in a long
 jump video is implemented in the following.\\\\
-As the takeoff frame detection in this project is based on the parameters
-listed in \autoref{sec:4_analysis_software}, the left and right
-foot position as well as the position of the \ac{CM} were analyzed in
-pre-recorded long jump videos of male long jumpers at different professional
-levels reaching from hobby- to olympian athlete.
-Moreover, the videos used differ in their length and quality as well as in the
+The identification of the takeoff frame relies solely on the video input.
+This means, the takeoff point has to be derived by analyzing (a combination
+of) the parameters listed in \autoref{sec:4_analysis_software}.
+Additionally, arm angles (and position) are not considered to be of great
+interest to detect the takeoff in the following.
+Therefore, the left- and right foot positions, both knee angles and the
+position of the \ac{CM} are analyzed in pre-recorded long jump videos of male
+long jumpers at different professional levels reaching from hobby- to Olympian
+athlete.
+The analyzed videos differ in their length and quality as well as in the
 jumping part they show (e.g.\ some videos do not show the full run-up).
-The results of three exemplary video analysis are shown in
+The results of three exemplary analysis are presented in
 \autoref{fig:4_angles_height_plot}.
-In order to develop an accurate takeoff point detection, the takeoff frame was
-first manually selected (marked as \textcolor{blue}{blue vertical line} for
-each analysis in \autoref{fig:4_angles_height_plot}).\\
+The best suitable parameter for the takeoff frame detection is selected based
+on these analysis results.
+To compare\footnote{Regarding their suitability as takeoff frame indicators}
+the various analyzed parameters, the takeoff frame was initially manually
+selected (highlighted as a \textcolor{blue}{blue vertical line} in each
+analysis within \autoref{fig:4_angles_height_plot}).\\
 The presented data has not been cleaned up in any way.
 This can especially be seen in the first and last analysis, in which the
 position and angle data is not accurate due to body key point detection
@@ -371,13 +378,26 @@ introduce the jump.\\
 In the moment of the takeoff, the knee angle of the jumping leg is above 170
 degree, meaning the jumping leg is fully extended.
 The swing legs' knee angle varies in the shown examples around 100 degree.\\\\
-The visually most significant change which happens in the moment of the
-takeoff and is therefore considered the most meaningful measured parameter
-that indicates the takeoff is the \ac{CM}'s rapid height change.
-Thus, the automatic takeoff detection is developed based on this parameter.\\
-To approach the detection of the change in the \ac{CM}s' vertical
-velocity, a mathematical description of its position during the jump is
-modelled.
+In order to reliably detect takeoff frames, an indicator is needed that is
+suitable for different video inputs and therefore especially insensitive to
+different run-up and jumping techniques.  
+Taking the results in \autoref{fig:4_angles_height_plot} into consideration,
+it can be noted that all analyzed positions (left-/ right foot and \ac{CM})
+rapidly change their height after the takeoff.
+However, as the \ac{CM}'s position is more stable in all shown analysis, it is
+chosen over the foot positions as first takeoff indicator.
+The second indicator is based on the jumping legs' full extension during the
+takeoff.
+Thus, it is chosen as a combination of both knee angles.\\\\
+The following takeoff frame detection is therefore based on both selected
+indicators (\ac{CM} height and knee angles).
+The primary indicator is chosen as the \ac{CM} height, while the knee angles
+are chosen as secondary indicator.
+To detect the takeoff based on the primary indicator, a mathematical
+description of the \ac{CM} trajectory is modelled using multiple regressions.
+This allows for mathematically determining the takeoff point.
+The secondary indicator is then used to verify the found takeoff frame.\\
+The process is explained in detail in the following.
 
 \begin{figure}[h!]
     \begin{subfigure}[b]{0.5\textwidth}
@@ -1385,22 +1405,75 @@ In the quadcopter setup HIGH is represented by 5V and LOW by GND.
 
 \subsection{Recording and streaming videos}\label{subsec:4_rec_stream_video}
 As the drone is meant to be used to support the long jump analysis process by
-recording the jump and send the captured video to a ground station, a complete
-video recording process is developed and implemented.\\
+recording the jump and sending the captured video to a ground station, a
+complete video recording process is developed and implemented.\\
 This includes the hardware camera setup on the drone, as well as the
 communication between the ground station which initializes the video
 recording and the drone capturing the actual video.\\
-Generally, the RaspberryPi takes care of capturing the video recordings.
-It starts the video recoridng when it is triggered via the ground station and
-sends the recorded video file back to the ground station where it is analyzed.
-Moreover, it offers a live stream of the current camera image to allow for
-aligning the drone correctly relative to the athlete.\\
+Generally, the on-board RaspberryPi takes care of capturing the video
+recordings.
+It starts the video recording when it is triggered via the ground station and
+sends the recorded video file back to the ground station after the recording
+has ended.
+The video is then analyzed on the ground station.
+Moreover, the RaspberryPi offers a live stream of the current camera image to
+allow for aligning the drone correctly relative to the athlete.\\
 In the following, the implementations of the aforementioned features are shown
 in detail.
 
-\subsubsection{UDP sockets for communication}
+\subsubsection{Connection between the ground station and the on-board computer}
+
+\subsubsection{TCP sockets for communication}\label{subsubsec:4_udp_sockets}
+Even though the video recording is performed by the on-board RaspberryPi
+computer, the recording must be initializable by the user on the ground
+station laptop.
+Therefore, the communication between these two computers is established using
+a \ac{TCP}~\cite{cerfProtocolPacketNetwork1974} connection.
+As potentially large video files are transferred wirelessly from the
+RaspberryPi to the ground station, the connection- and confirmed orientated
+\ac{TCP} connection is chosen over the connectionless
+\ac{UDP}~\cite{SpecificationInternetTransmission1974} communication to avoid
+data loss.\\\\
+\noindent When the ground station connects to the drone, a \ac{TCP} socket is
+opened in a background thread.
+The corresponding \ac{TCP} connection is initialized using a three-way
+handshake\footnote{The request is sent by the ground station, the drone
+acknowledges, and the ground station acknowledges the drone's response} by the
+ground station.
+To create the socket, Python's \texttt{socket} module is used to access the
+BSD socket interface.
+Generally, a \ac{TCP} socket is uniquely defined by an IP-Address and the
+corresponding port number.
+As the ground station is directly connected to the RaspberryPi's own WLAN, the
+socket's IP address is equivalent to the ground station's standard gateway.
+The port is set arbitrarily.\\
+To start / end video recordings, pre-defined messages are sent via the created
+\ac{TCP} socket.
+The messages are utf-8 encoded and sent using Python's
+\texttt{socket.sendAll(message)} function.
+The drone on the other connection end uses \texttt{socket.recv()} to listen to
+any messages sent via the \ac{TCP} connection.
+If a message contains one of the pre-defined keywords (e.g.
+\textit{start\_recording}, \textit{end\_recording}), the corresponding action
+is executed.\\\\
+
+\noindent When a video recording has ended (either because the user manually
+ended the recording, or because a timeout / error occurred on the
+RaspberryPi's side), the temporarily saved video is transferred to the ground
+station.
+This process is implemented using \ac{TCP} sockets, too.
+The transmission is initiated by the on-board RaspberryPi.
+The overall process is similar to the message sending part previously
+explained.
+Now however, the drone uses \texttt{socket.sendAll()} iteratively to send the
+video divided into several chunks of 1024 byte size.
+The ground station on the other hand uses \texttt{socket.recv(1024)} to
+receive the video data chunks.
+Once the video is completely transferred, the according file is deleted from
+the on-board computer and the drone is able to record a new video again.
+
 \subsubsection{Camera setup and video recording}
-\subsubsection{Live streaming the video feed}
+\subsubsection{Live-streaming the video feed}
 
 \section{Controlling the drone}\label{sec:4_drone_ctrl}
 
