@@ -1482,9 +1482,28 @@ The drone on the other connection end uses \texttt{socket.recv()} to listen to
 any messages sent via the \ac{TCP} connection.
 If a message contains one of the pre-defined keywords (e.g.
 \textit{start\_recording}, \textit{end\_recording}), the corresponding action
-is executed.\\\\
-
-\noindent When a video recording has ended (either because the user manually
+is executed.
+The \ac{TCP} socket on the RaspberryPi for receiving control messages is set
+up as shown in following Listing:
+\begin{pythoncode}[caption=create TCP socket, label=alg:create_tcp_port]
+    def create_socket(port: int):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.bind(('0.0.0.0', port))
+            sock.listen()
+            conn, addr = sock.accept()
+\end{pythoncode}
+In the above listing, the option \texttt{SOCK\_STREAM} defines a \ac{TCP}
+connection.
+Furthermore, the option \texttt{'0.0.0.0'} is set as IP address, instructing
+the RaspberryPi  to listen for connections on all available network interfaces
+(on the given port in the provided example).
+Hence, any ground station can simply connect to this port to send
+control instructions.\\
+Some more options which are not explicitly shown are set to avoid multiple
+connections being established on the same port on the one hand but allow a
+connection to be re-established when it gets disconnected unexpectedly on the
+other hand.\\\\
+\noindent Once a video recording has ended (either because the user manually
 ended the recording, or because a timeout / error occurred on the
 RaspberryPi's side), the temporarily saved video is transferred to the ground
 station.
@@ -1514,9 +1533,9 @@ station.
 Moreover, the implemented takeoff detection performs best on short video
 sequences (see \autoref{subsec:4_runtime_performance}).\\
 The timeout is set to 10 seconds, as a normal long jump usually does not take
-longer than around seconds.\footnote{Approach length: 40 m, average run up speed:
+longer than around seven\footnote{Approach length: 40 m, average run up speed:
 $6.5\frac{m}{s}$, flight time: $1\sec$ leads to about $7\sec$ total jumping
-time.}
+time} seconds.
 
 \subsubsection{Camera setup and video recording}\label{subsubsec:4_cam_setup_recording}
 Once the RaspberryPi receives the control message to start the video
@@ -1531,14 +1550,36 @@ A frame rate of 60~\ac{FPS} or higher ensures that every phase of the
 jump, in particular the takeoff phase, is well resolved in the time domain.
 The video is recorded at a resolution of $1920 \times 1080$ pixels.
 This resolution is sufficient for the mediapipe framework to fully recognize
-the athlete's posture and joints.
-%TODO%
-%TODO: insert code from raspberry pi%
+the athlete's posture and joints.\\\\
+\noindent The camera used in this work to record long jumps is the RaspberryPi
+HQ camera in combination with a 16 mm C-Mount tele lens.
+The tele lens allows the drone to keep a safety distance to the athlete
+during the run-up while still keeping the athlete in focus. 
+To manage the video recording parameters and directly interact with the
+camera, the Linux library \texttt{libcamera} is utilized, while the
+\texttt{Picamera2} Python library, built upon \texttt{libcamera}, offers a
+more accessible interface for this purpose.\\
+Picamera2 especially offers the \texttt{create\_video\_configuration} function
+to conveniently set video recording parameters such as frame rate, resolution,
+or the option to rotate the captured frame in-place. 
+Latter one is especially useful in this work, as the camera can thereby be
+mounted to the drone in any orientation while the recorded video is still
+orientated correctly.
+The video frames in this work only need to be rotated by a (multiple of)
+$90^{\circ}$, as the camera is not mounted at some arbitrary diagonal angle. 
+Thus, the required computations can be represented by simply moving each
+video frame's matrix elements to a pre-defined index.
+A $90^{\circ}$ rotation e.g. is performed by simply transposing the matrix
+(in-place) and reversing each row afterwards (applied to each RGB input channel
+respectively)~\cite{godardEfficientOutofCoreOutofPlace2021}.\\
+These transformations are performed before the video frame is written to
+the actual video file.
+Hence, the post-processing overhead is significantly reduced.
 
 \subsubsection{Live-streaming the video feed}\label{subsubsec:4_live_stream}
 In addition to the video recording, a live-streaming video option is
 implemented to allow for aligning the drone alongside the athlete with the
-athlete centered in the camera image.\\
+athlete being centered in the camera image.\\
 The live-stream is implemented similar to the implemented communication
 control flow described earlier (\autoref{subsubsec:4_tcp_sockets}).
 However, package loss in this case is not as relevant as it is in the
@@ -1552,10 +1593,49 @@ acceptable in this case, as the video stream is not meant to be used to
 control the drone in real time.\\
 To reduce the used transmission bandwidth further, the live-stream resolution
 is additionally limited to $640 \times 480$ pixels.
+The specific streaming parameters are again set using \texttt{Picamera2}'s
+\texttt{create\_video\_configuration} function as explained in the
+\hyperref[subsubsec:4_cam_setup_recording]{previous paragraph}.
 To allow for higher resolution video recording, the live-stream is not
-available while a video recording is active.
+available while a video recording is active.\\\\
+\noindent On the ground station's side, the receiving is implemented using
+openCV's \texttt{VideoCapture} function which can be called with the
+RaspberryPi's IP address and the corresponding port number as arguments.
+The received video frames are then visualized using the same signal and slot
+mechanisms as explained in \autoref{subsec:4_lj_software_gui}.
 
 \section{Controlling the drone}\label{sec:4_drone_ctrl}
+Besides starting the measurement recordings and analyzing the recorded jumps,
+the ground station is also used to align the drone next to the athlete.
+Hence, a basic drone control is implemented supporting fundamental movements
+including forward, backward, left, right, ascending, descending, and rotation
+(around the drone's vertical axis).\\
+The control in this work is based on the MAVLink
+protocol~\cite{koubaaMicroAirVehicle2019} and the
+corresponding python library \texttt{pymavlink} which is able to send and
+receive MAVLink messages (e.g. via a serial interface).\\
+All MAVLink packets follow the same structure\footnote{This work uses MAVLink
+v2. Thus, only this version's packet structure is shown.}:
+\begin{figure}[!h]
+    \centering
+    \includegraphics[scale=0.7]{mavlink_v2.pdf}
+    \label{fig:4_mavlink_message}
+    \caption[Structure of a MAVLink message]{Structure of a MAVLink message.\\
+    Below each component, their respective size in bytes is shown.\\
+    The signature is optional.\\
+    The visualization is based on the MAVLink 2.0 header shown
+    in~\cite{koubaaMicroAirVehicle2019}}
+\end{figure}
+As this work does not use message signatures, the shown packet structure leads
+to a (maximal) message size of 266 bytes\footnote{11 bytes overhead + 255
+bytes payload}.
+Due to its low overhead (11 bytes), the protocol is considered lightweight and
+is therefore used in many applications where low latencies are important.
+However, the protocol therefore does not include any security measures (apart
+from the message signature) like encryption.\\
+In the following, each part belonging to the drone control process, namely
+the connection and the movement control is explained based on the above shown
+MAVLink message structure.
 
 \subsection{Connection}\label{subsec:4_drone_conn}
 \subsection{Movement}\label{subsec:4_drone_mvmnt}
