@@ -1711,4 +1711,13 @@ The usage of asynchronous receiving ensures, that heartbeats get emitted in
 regular intervals and are not blocked by the receiving function.
 
 \subsection{Movement}\label{subsec:4_drone_mvmnt}
+Once a conrol-connection is established (see above
+\autoref{subsec:4_drone_conn}), the drone software supports basic movements to
+control the drone.
+All supported movement instructions are sent via the MAVLink protocol using
+the \texttt{pymavlink} module.
+Moreover, all messages are sent from a background thread.
+Generally, all supported movements are abstracted in one \texttt{DroneControl}
+class, which needs a  valid \texttt{DroneConnection} object to work.
+
 \subsection{GUI control panel}\label{subsec:4_drone_ctrl_panel_gui}
