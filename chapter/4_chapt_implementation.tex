@@ -1626,9 +1626,10 @@ v2. Thus, only this version's packet structure is shown.}:
     The visualization is based on the MAVLink 2.0 header shown
     in~\cite{koubaaMicroAirVehicle2019}}
 \end{figure}
-As this work does not use message signatures, the shown packet structure leads
-to a (maximal) message size of 266 bytes\footnote{11 bytes overhead + 255
-bytes payload}.
+\FloatBarrier
+\noindent As this work does not use message signatures, the shown packet
+structure leads to a (maximal) message size of 266 bytes\footnote{11 bytes
+overhead + 255 bytes payload}.
 Due to its low overhead (11 bytes), the protocol is considered lightweight and
 is therefore used in many applications where low latencies are important.
 However, the protocol therefore does not include any security measures (apart
@@ -1638,5 +1639,76 @@ the connection and the movement control is explained based on the above shown
 MAVLink message structure.
 
 \subsection{Connection}\label{subsec:4_drone_conn}
+The control-connection between the drone and the ground station is established
+using two SiK telemetry radios operating at a frequency of 433~MHz with a
+transmission power of 100~mW.
+One is mounted on the drone and is directly connected to the PixHawk flight
+controller (see \autoref{fig:4_general_wiring}), the other one is connected
+to the ground station using a serial connection (USB), respectively.\\
+As MAVLink is a connectionless protocol~\cite{atoevDataAnalysisMAVLink2017},
+no permanent connection is established.
+However, as it is important to know whether the drone is still reachable by
+the ground station, a heartbeat signal is used to ensure a connection.
+Thus, the terminus \textit{connected} will in the following be used, if a
+heartbeat is received from the drone.
+Otherwise, the drone is considered \textit{disconnected}.\\
+Besides receiving a heartbeat signal from the drone, the ground station emits
+one itself, too.
+By this combination of exchanging heartbeats between the two systems, a correct
+connection is ensured.\\
+The camera and thus, video recording control is discussed separately in
+\autoref{subsubsec:4_pi_wifi} (and following).\\\\
+\noindent Implementation wise, the heartbeat connection is handled in an own
+thread.
+Thus, the connection is kept alive in background while the \ac{GUI} stays
+responsive to handle user interaction.
+The heartbeat is sent at a frequency of 1~Hz by the ground station and the
+flight controller respectively.
+Hence, the worst case time for detecting a connection loss lies at 1~sec.
+Once the heartbeat thread is started, heartbeats are sent until either the
+thread gets interrupted or a connection timeuout occured:
+
+\begin{pythoncode}[caption=Sending mavlink heartbeats,label=alg:heartbeat_mav_send]
+    def emit_heartbeat():
+        system_type = mavutil.mavlink.MAV_TYPE_GCS
+        autopilot_type = mavutil.mavlink.MAV_AUTOPILOT_INVALID
+        while True:
+            self.connection.mav.heartbeat_send(
+                system_type,
+                autopilot_type,
+                0,  # MAV_MODE_FLAG
+                0,  # Custom mode, not used for FLYJUMP
+                0,  # System status, not used for for FLYJUMP
+                0,  # MAVLink version, 0: default(2.0)
+            )
+            time.sleep(1)
+\end{pythoncode}
+The provided code example uses \texttt{time.sleep(1)}.
+Thus, the background thread executing this function is scheduled as few as
+possible, ensuring that it consumes as little \ac{CPU} time as possible.
+Moreover, the communication channel does not get overloaded.
+The used \texttt{heartbeat\_send} function is provided by the
+\texttt{pymavlink} library.
+The system type is set to indicate the heartbeat's origin, which is the ground
+station in this case.
+The parameter \texttt{MAV\_AUTOPILOT\_INVALID} indicates that the heartbeat is
+sent by a system without any autopilot software installed.\\\\
+\noindent The heartbeat receiving part is implemented using \texttt{pymavlink}
+, too.
+It is handled within the same thread as the heartbeat emitting.
+Hence, both functionalities are abstracted in a \texttt{DroneConnection} class
+which inherits from \texttt{Qhread} to make it executable in a background
+thread.\\
+To receive heartbeats from the drone, the \texttt{recv\_match()} function is
+used.
+This function can generally receive (wait for) every MAVLink message
+available.
+Furthermore, it can either be executed synchronously or asynchronously.
+The heartbeat receiving relies on the asynchronous version.
+If the time between two consecutive heartbeat signals exceeds two seconds, the
+connection is considered to be lost.
+The usage of asynchronous receiving ensures, that heartbeats get emitted in
+regular intervals and are not blocked by the receiving function.
+
 \subsection{Movement}\label{subsec:4_drone_mvmnt}
 \subsection{GUI control panel}\label{subsec:4_drone_ctrl_panel_gui}
