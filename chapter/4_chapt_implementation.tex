@@ -1717,7 +1717,14 @@ control the drone.
 All supported movement instructions are sent via the MAVLink protocol using
 the \texttt{pymavlink} module.
 Moreover, all messages are sent from a background thread.
-Generally, all supported movements are abstracted in one \texttt{DroneControl}
-class, which needs a  valid \texttt{DroneConnection} object to work.
+The corresponding thread is generally setup similarly to the aforementioned
+drone connection thread, now however, the supported movements are
+abstracted in one \texttt{DroneControl} class, which inherits from
+\texttt{QThread}.
+Furthermore, it needs a valid\footnote{Drone connection objects become
+invalid whenever the connection to the drone gets interrupted.} 
+\texttt{DroneConnection} object to work.\\\\
+\noindent In the following the drone control is explained using multiple
+coordinate systems.
 
 \subsection{GUI control panel}\label{subsec:4_drone_ctrl_panel_gui}
