@@ -11,6 +11,7 @@
 \usepackage{geometry}
 \usepackage{graphicx}
 \usepackage{tabularx}
+\usepackage{longtable}
 \usepackage[toc, page]{appendix}
 \usepackage{acronym}
 \usepackage[english]{babel}
@@ -31,6 +32,8 @@
 \usepackage{pdfpages}
 \usepackage{multirow}
 \usepackage{multicol}
+\usepackage{utfsym}
+\newcommand{\newcrossmark}{\scalebox{0.75}{\usym{2613}}}
 \usepackage[nomain, nonumberlist]{glossaries}
 \usepackage[backend=biber, style=numeric-comp, citestyle=numeric, urldate=long, 
 dateabbrev=false, sorting=none,maxbibnames=2]{biblatex}
@@ -121,7 +124,8 @@ dateabbrev=false, sorting=none,maxbibnames=2]{biblatex}
     \include{chapter/2_chapt_taks.tex} 
     \include{chapter/3_chapt_methodology}
     \include{chapter/4_chapt_implementation.tex}
-    \include{chapter/5_chapt_ergebnis.tex}
+    \include{chapter/5_chapt_results.tex}
+    \include{chapter/6_chapt_conclusion.tex}
 
     %----- BIBLIOGRAPHY -----
     \pagenumbering{Roman}

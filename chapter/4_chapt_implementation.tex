@@ -1,5 +1,5 @@
 \graphicspath{{./figures/}}
-\chapter{Implementation}
+\chapter{Implementation}\label{chapt:4_implementation}
 This chapter focuses on the overall project's implementation.
 It mainly covers the four parts hardware assembly, long jump analysis,
 drone control and their consolidation into one \ac{GUI}.
@@ -1619,12 +1619,12 @@ v2. Thus, only this version's packet structure is shown.}:
 \begin{figure}[!h]
     \centering
     \includegraphics[scale=0.7]{mavlink_v2.pdf}
-    \label{fig:4_mavlink_message}
     \caption[Structure of a MAVLink message]{Structure of a MAVLink message.\\
     Below each component, their respective size in bytes is shown.\\
     The signature is optional.\\
     The visualization is based on the MAVLink 2.0 header shown
     in~\cite{koubaaMicroAirVehicle2019}}
+    \label{fig:4_mavlink_message}
 \end{figure}
 \FloatBarrier
 \noindent As this work does not use message signatures, the shown packet
@@ -1725,6 +1725,159 @@ Furthermore, it needs a valid\footnote{Drone connection objects become
 invalid whenever the connection to the drone gets interrupted.} 
 \texttt{DroneConnection} object to work.\\\\
 \noindent In the following the drone control is explained using multiple
-coordinate systems.
+coordinate systems, also referred to as coordinate frames.
+The axis are therefore denoted as following: the y-axis represents the
+horizontal axis, the z-axis denotes the vertical axis and the
+x-axis denotes the axis orthogonal to both of them.\\
+All movements are implemented using MAVLink's
+\texttt{SET\_POSITION\_TARGET\_LOCAL\_NED} message, which allows to control
+the drone relative to either its' takeoff location or its current position.
+The term NED indidcates the previously defined \textbf{N}orth (X-axis),
+\textbf{E}ast (Y-axis), \textbf{D}own (Z-axis) coordinate frame.\\
+However, this coordinate frame only defines the movement directions (e.g. 2~m
+in positive Z-direction means descending by 2~m), it does not define the it's
+origin.
+Furthermore, it does not define if the axis directions stay fixed (e.g. the
+X-axis always points to the north) or if they are relative to the drone (e.g.
+the X-axis points to the drone's front).
+Each of the aforementioned coordinate frame options are supported by Ardupilot. %TODO: mention Ardupilot before
+Thus, in order to achieve the desired movement, the according coordinate
+frame needs to be provided\footnote{In reality, the coordinate frames are
+stored on the flight controller.
+Each one has a unique ID which can then be referred to.} each time a movement
+command is sent.
+All three aforementioned coordinate frames are shown in following
+\autoref{fig:4_control_coord_frames}:
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{coordinate_frame_global.pdf}
+        \caption{Global coordinate frame with the origin fixed to the drone's
+        takeoff location.}
+    \end{subfigure}\hfill
+    \begin{subfigure}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{coordinate_frames_local.pdf}
+        \caption{Local coordinate frame with the origin moving with the
+        drone's current position.}
+    \end{subfigure}
+    \caption[Drone movement coordinate systems]{Coordinate frames used for
+    movement commands.}
+    \label{fig:4_control_coord_frames}
+\end{figure}
+
+\begin{figure}[htbp]
+    \ContinuedFloat
+    \centering
+    \begin{subfigure}{1.0\textwidth}
+        \centering
+        \includegraphics[scale=0.8]{coordinate_frames_local_heading.pdf}
+        \caption{Local coordinate frame with the origin moving with the
+        drone's current position and the axis orientation rotating according
+        to the drone's heading. Z-Axis pointing downwards.}
+    \end{subfigure}
+    \caption*{Coordinate frames used for movement commands (continued).}
+\end{figure}
+\FloatBarrier
+\noindent As the drone flies alongside the athlete with an arbitrary approach
+length, the absolute coordinate offset between the drone's takeoff point
+and the point where the jump is complete is unknown.
+Thus, the global coordinate frame (a) is not suitable for this work.
+The local coordinate systems (b) and (c) however, can both be used to align
+the drone alongside the athlete during the jump.
+They only differ in the way the movements are executed.
+When using coordinate frame (b), the drone always turns into the direction it
+is flying (e.g. flying 1~m north leads to turning the drone's front north and
+then flying 2~m along the noth axis).
+As coordinate frame (c) consinders the drone's current heading the same
+command here leads to flying 2~m forward (to the drone's north).\\\\
+Following code is used to control the drone according to coordinate frame (b):
+
+\begin{pythoncode}[caption=Movement commands using local\_ned,label=alg:send_ned_command]
+    def ned_command(self, x, dx, d2x):
+        self.connecion.send(
+            mavutil.mavlink.MAVLink_set_position_target_local_ned_message(
+                0, target_system, target_component,
+                9, # frame id
+                int(0b110111000111), #bitmask
+                *x, #(x, y, z) in m
+                *dx, #(x, y, z) velocity in m/s
+                *d2x, #(x, y, z) velocity in m/s^2
+                0, 0 #yaw (rad), yaw rate (rad/s)
+            )
+        )
+\end{pythoncode}
+As can be seen in above code example, the drone can be controlled according to
+either a position offset, a velocity or an acceleration.
+In this work, especially the velocity option is important.
+Hence, the drone can fly next to an athlete matching their run-up speed.
+The above shown example is set-up as an example for velocity control.
+However, the control based on other parameters is similar.\\
+In above example, the bitmask \texttt{0b110111000111} is used to enable (or
+disable) the provided paramters (in this exact order: position, speed,
+acceleration, yaw angle and yaw rate).
+The bitmask is setup from right to left, meaning the rightmost bit enables/
+disables the provided x position offset.
+Furthermore, the bitmask is inverted.
+Thus, a 1 disables the parameter (according to its position) and a 0 enables
+it respectively\footnote{Bit 10 (from the right) is unused by the system.}.
+The shown \texttt{self.connection} is an instance of the
+\texttt{DroneConnection} class, allowing the commands to be sent in background
+thread.\\\\
+\noindent All message parameters shown are embeddded in the MAVLink message
+protocol (see \autoref{fig:4_mavlink_message}).
+As response to the sent movement commands, the drone replies with an
+acknowledge message including the original movement command.
+Hence, the acknowledgement is received asynchronously by the ground station.\\\\
+\noindent The supported movements (forward, backward, left, right, ascending,
+descending and rotation around the z-axis) are triggered by either the
+\ac{GUI} (see \autoref{subsec:4_drone_ctrl_panel_gui}) or the keyboard.
+Here, \textit{WASD} is used for North (X), East (Y) movements and
+\textit{IJKL} is used for Down (Z) and yaw movements.
+The keyboard interection is therefore captured by the software's main thread.
+Then, signals are sent to the background thread's slots to trigger the command
+sending shown above.
+If the user holds one of the keys, the according movement control message is
+sent at a frequency of 1~Hz, allowing for a smmooth flight path\footnote{If
+the drone does not receive a control message for two seconds, it automatically
+stops and loiters at it's current position.}. 
 
 \subsection{GUI control panel}\label{subsec:4_drone_ctrl_panel_gui}
+As aforementioned, the drone control as well as drone status messages (e.g.
+GPS satelite count, errors) and the camera live-stream (
+\autoref{subsec:4_rec_stream_video}) are combined into one \ac{GUI} control
+panel, allowing for a convenient drone - ground station interaction.
+Thus, as long as the control panel is openend, the \ac{TCP} connection (used
+for camera control) and the control connection (via MAVLink) is kept alive.\\
+The control panel is shown in \autoref{fig:4_drone_ctrl_panel}:
+\begin{figure}[!h]
+    \centering
+    \includegraphics[scale=0.6]{drone_control_panel.png}
+    \caption[Drone control panel]{Drone control panel}
+    \label{fig:4_drone_ctrl_panel}
+\end{figure}
+
+\noindent The shown control panel is divided into three main areas, namely a
+connection control area, a video control area and a drone status area (from
+left to right).
+The serial port to which the telemetry radio is connected, is automatically
+detected.
+To allow for a quick takeoff- and landing process, according quick-action
+buttons are implemented.
+Especially the \textit{return to home} function is helpful as no manual user
+interaction is required to land the drone at the exact takeoff location.
+The automatically detected telemetry port is then used to establish the
+control connection to the drone once the \textit{connect} button is clicked.
+The connect button triggers the \ac{TCP} streaming connection, too.
+The received camera live-stream is then shown in the middlle section of the
+control panel.\\
+On the panel's right side, the drone's current status is shown.
+This includes the \ac{GPS} condition as well as the most important filght
+parameters (height over ground and velocity over ground).
+Furthermore, the battery status is shown for safety reasons.\\
+The upper part in the status area is reserved for important messages from the
+drone (e.g. when some commands are rejected or some internal failure occurs).
+The status message report needs to be requested explicitly, which is done in
+combination with receiving the drone's heartbeat (see
+\autoref{subsec:4_drone_conn}) at a frequency of 1~Hz.
