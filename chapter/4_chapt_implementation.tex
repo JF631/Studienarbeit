@@ -1406,204 +1406,6 @@ that any connection failure is easily detectable.
 UART can work with any voltages to denote HIGH and LOW levels.
 In the quadcopter setup HIGH is represented by 5V and LOW by GND.
 
-\subsection{Recording and streaming videos}\label{subsec:4_rec_stream_video}
-As the drone is meant to be used to support the long jump analysis process by
-recording the jump and sending the captured video to a ground station, a
-complete video recording process is developed and implemented.\\
-This includes the hardware camera setup on the drone, as well as the
-communication between the ground station which initializes the video
-recording and the drone capturing the actual video.\\
-Generally, the on-board RaspberryPi takes care of capturing the video
-recordings.
-It starts the video recording when it is triggered via the ground station and
-sends the recorded video file back to the ground station after the recording
-has ended.
-The video is then analyzed on the ground station.
-Moreover, the RaspberryPi offers a live stream of the current camera image to
-allow for aligning the drone correctly relative to the athlete.\\
-In the following, the implementations of the aforementioned features are shown
-in detail.
-
-\subsubsection{Connection between the ground station and the on-board computer}\label{subsubsec:4_pi_wifi}
-In order to start or stop video recordings or capture images as well as to
-send video recordings back to the ground station, the on-board mounted
-RaspberryPi needs to communicate with the ground station.
-Furthermore, this connection is used to stream live images from the drone to
-the ground station, too.\\
-There are many implementations that use
-analog~\cite{tecpoyotl-torresRealtimeVideoTransmission2021} video transmission
-for live-streaming videos from \ac{FPV} drones.
-More recently, digital alternatives~\cite{silicQoEAssessmentFPV2021} with
-comparable latencies were developed.
-However, the live stream in this work is meant to be used for aligning the
-drone only, not for controlling it.
-Thus, the real-time requirements are less important.
-Furthermore, the connection is not only used to live-stream videos, but also
-to send commands (e.g. start video recording) and video files.
-Hence, the connection to the on-board computer is realized using a Wifi
-network.
-This is achieved by setting up the RaspberryPi as access point to which the
-ground station can then connect directly.\\
-This creates an arbitrarily useable connection which allows for quick
-transmission speeds.
-As the ground station and the drone are always used together on-field (which
-guarantees physical proximity), the limited Wifi transmission range is not
-considered as problematic for the following Implementations.
-%TODO: explain the actual implementation on  the Raspberry Pi%
-
-\subsubsection{TCP sockets for communication}\label{subsubsec:4_tcp_sockets}
-Even though the video recording is performed by the on-board RaspberryPi, the
-recording must be initializable by the user via the ground station.
-Therefore, the communication between these two computers is established using
-a \ac{TCP}~\cite{cerfProtocolPacketNetwork1974} connection.
-As potentially large video files are transferred wirelessly from the
-RaspberryPi to the ground station, a connection-orientated and confirmed
-\ac{TCP} connection protocol is chosen over a connectionless
-\ac{UDP}~\cite{SpecificationInternetTransmission1974} to avoid data loss.\\\\
-
-\noindent When the ground station connects to the drone, a \ac{TCP} socket is
-opened in a background thread.
-The corresponding \ac{TCP} connection is initialized by the
-ground station using a three-way handshake\footnote{The request is sent by the
-ground station, the drone acknowledges, and the ground station acknowledges
-the drone's response}.
-To create the socket, Python's \texttt{socket} module is used to access the
-BSD socket interface.
-Generally, a \ac{TCP} socket is uniquely defined by an IP-Address and the
-corresponding port number.
-As the ground station is directly connected to the RaspberryPi's own WLAN, the
-socket's IP address is equivalent to the ground station's standard gateway.
-The port is set arbitrarily.\\
-To start / end video recordings, pre-defined messages are sent via the created
-\ac{TCP} socket.
-The messages are utf-8 encoded and sent using Python's
-\texttt{socket.sendAll(message)} function.
-The drone on the other connection end uses \texttt{socket.recv()} to listen to
-any messages sent via the \ac{TCP} connection.
-If a message contains one of the pre-defined keywords (e.g.
-\textit{start\_recording}, \textit{end\_recording}), the corresponding action
-is executed.
-The \ac{TCP} socket on the RaspberryPi for receiving control messages is set
-up as shown in following Listing:
-\begin{pythoncode}[caption=create TCP socket, label=alg:create_tcp_port]
-    def create_socket(port: int):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-            sock.bind(('0.0.0.0', port))
-            sock.listen()
-            conn, addr = sock.accept()
-\end{pythoncode}
-In the above listing, the option \texttt{SOCK\_STREAM} defines a \ac{TCP}
-connection.
-Furthermore, the option \texttt{'0.0.0.0'} is set as IP address, instructing
-the RaspberryPi  to listen for connections on all available network interfaces
-(on the given port in the provided example).
-Hence, any ground station can simply connect to this port to send
-control instructions.\\
-Some more options which are not explicitly shown are set to avoid multiple
-connections being established on the same port on the one hand but allow a
-connection to be re-established when it gets disconnected unexpectedly on the
-other hand.\\\\
-\noindent Once a video recording has ended (either because the user manually
-ended the recording, or because a timeout / error occurred on the
-RaspberryPi's side), the temporarily saved video is transferred to the ground
-station.
-This process is implemented using \ac{TCP} sockets, too.
-The transmission is initiated by the on-board RaspberryPi.
-The overall process is similar to the message sending part previously
-explained.
-Now however, the drone uses \texttt{socket.sendAll()} iteratively to send the
-video divided into several chunks of 1024 byte size.
-The ground station on the other hand uses \texttt{socket.recv(1024)} to
-receive the video data chunks.
-Once the video is completely transferred, the according file is deleted from
-the on-board computer and the drone is able to record a new video again.\\
-An overview of the control flow which is used to start a measurement recording
-is presented in following \autoref{fig:4_measurement_ctrl_flow}.\\
-\begin{figure}[h!]
-    \centering
-    \includegraphics[scale=0.7]{request_flow.pdf}
-    \caption[Measurement control flow between ground station and drone]{
-        Measurement control flow between the ground station and the drone}
-    \label{fig:4_measurement_ctrl_flow}
-\end{figure}
-\noindent It can be noted that the maximal recording time is limited to 10
-seconds.
-This ensures quick transfer times when the video is being sent to the ground
-station.
-Moreover, the implemented takeoff detection performs best on short video
-sequences (see \autoref{subsec:4_runtime_performance}).\\
-The timeout is set to 10 seconds, as a normal long jump usually does not take
-longer than around seven\footnote{Approach length: 40 m, average run up speed:
-$6.5\frac{m}{s}$, flight time: $1\sec$ leads to about $7\sec$ total jumping
-time} seconds.
-
-\subsubsection{Camera setup and video recording}\label{subsubsec:4_cam_setup_recording}
-Once the RaspberryPi receives the control message to start the video
-recording, the live-stream (see below \autoref{subsubsec:4_live_stream}) is
-interrupted. 
-Afterwards, the video recording is started.
-The captured video frames are saved to a temporary .mp4 file located on the
-on-borad RaspberryPi itself.
-Thus, the full available frame rate and resolution can be used to record the
-long jump.\\
-A frame rate of 60~\ac{FPS} or higher ensures that every phase of the
-jump, in particular the takeoff phase, is well resolved in the time domain.
-The video is recorded at a resolution of $1920 \times 1080$ pixels.
-This resolution is sufficient for the mediapipe framework to fully recognize
-the athlete's posture and joints.\\\\
-\noindent The camera used in this work to record long jumps is the RaspberryPi
-HQ camera in combination with a 16 mm C-Mount tele lens.
-The tele lens allows the drone to keep a safety distance to the athlete
-during the run-up while still keeping the athlete in focus. 
-To manage the video recording parameters and directly interact with the
-camera, the Linux library \texttt{libcamera} is utilized, while the
-\texttt{Picamera2} Python library, built upon \texttt{libcamera}, offers a
-more accessible interface for this purpose.\\
-Picamera2 especially offers the \texttt{create\_video\_configuration} function
-to conveniently set video recording parameters such as frame rate, resolution,
-or the option to rotate the captured frame in-place. 
-Latter one is especially useful in this work, as the camera can thereby be
-mounted to the drone in any orientation while the recorded video is still
-orientated correctly.
-The video frames in this work only need to be rotated by a (multiple of)
-$90^{\circ}$, as the camera is not mounted at some arbitrary diagonal angle. 
-Thus, the required computations can be represented by simply moving each
-video frame's matrix elements to a pre-defined index.
-A $90^{\circ}$ rotation e.g. is performed by simply transposing the matrix
-(in-place) and reversing each row afterwards (applied to each RGB input channel
-respectively)~\cite{godardEfficientOutofCoreOutofPlace2021}.\\
-These transformations are performed before the video frame is written to
-the actual video file.
-Hence, the post-processing overhead is significantly reduced.
-
-\subsubsection{Live-streaming the video feed}\label{subsubsec:4_live_stream}
-In addition to the video recording, a live-streaming video option is
-implemented to allow for aligning the drone alongside the athlete with the
-athlete being centered in the camera image.\\
-The live-stream is implemented similar to the implemented communication
-control flow described earlier (\autoref{subsubsec:4_tcp_sockets}).
-However, package loss in this case is not as relevant as it is in the
-communication protocol.
-Hence, the live-stream is based on \ac{UDP} sockets instead of \ac{TCP}.
-sockets.\\
-As \ac{UDP} is connectionless, no overhead is introduced by connection
-establishment or re-transmitting lost packages.
-This however leads to some video frames getting (potentially) lost, which is
-acceptable in this case, as the video stream is not meant to be used to
-control the drone in real time.\\
-To reduce the used transmission bandwidth further, the live-stream resolution
-is additionally limited to $640 \times 480$ pixels.
-The specific streaming parameters are again set using \texttt{Picamera2}'s
-\texttt{create\_video\_configuration} function as explained in the
-\hyperref[subsubsec:4_cam_setup_recording]{previous paragraph}.
-To allow for higher resolution video recording, the live-stream is not
-available while a video recording is active.\\\\
-\noindent On the ground station's side, the receiving is implemented using
-openCV's \texttt{VideoCapture} function which can be called with the
-RaspberryPi's IP address and the corresponding port number as arguments.
-The received video frames are then visualized using the same signal and slot
-mechanisms as explained in \autoref{subsec:4_lj_software_gui}.
-
 \section{Controlling the drone}\label{sec:4_drone_ctrl}
 Besides starting the measurement recordings and analyzing the recorded jumps,
 the ground station is also used to align the drone next to the athlete.
@@ -1881,3 +1683,200 @@ drone (e.g. when some commands are rejected or some internal failure occurs).
 The status message report needs to be requested explicitly, which is done in
 combination with receiving the drone's heartbeat (see
 \autoref{subsec:4_drone_conn}) at a frequency of 1~Hz.
+
+\section{Drone camera control}\label{subsec:4_live_stream}
+As the drone is meant to be used to support the long jump analysis process by
+recording the jump and sending the captured video to a ground station, a
+complete video recording process is developed and implemented.\\
+This includes the hardware camera setup on the drone, as well as the
+communication between the ground station which initializes the video
+recording and the drone capturing the actual video.\\
+Generally, the on-board RaspberryPi takes care of capturing the video
+recordings.
+It starts the video recording when it is triggered via the ground station and
+sends the recorded video file back to the ground station after the recording
+has ended.
+The video is then analyzed on the ground station.
+Moreover, the RaspberryPi offers a live stream of the current camera image to
+allow for aligning the drone correctly relative to the athlete.\\
+In the following, the implementations of the aforementioned features are shown
+in detail.
+
+\subsection{Connection between the ground station and the on-board computer}\label{subsec:4_pi_wifi}
+In order to start or stop video recordings or capture images as well as to
+send video recordings back to the ground station, the on-board mounted
+RaspberryPi needs to communicate with the ground station.
+Furthermore, this connection is used to stream live images from the drone to
+the ground station, too.\\
+There are many implementations that use
+analog~\cite{tecpoyotl-torresRealtimeVideoTransmission2021} video transmission
+for live-streaming videos from \ac{FPV} drones.
+More recently, digital alternatives~\cite{silicQoEAssessmentFPV2021} with
+comparable latencies were developed.
+However, the live stream in this work is meant to be used for aligning the
+drone only, not for controlling it.
+Thus, the real-time requirements are less important.
+Furthermore, the connection is not only used to live-stream videos, but also
+to send commands (e.g. start video recording) and video files.
+Hence, the connection to the on-board computer is realized using a Wifi
+network.
+This is achieved by setting up the RaspberryPi as access point to which the
+ground station can then connect directly.\\
+This creates an arbitrarily useable connection which allows for quick
+transmission speeds.
+As the ground station and the drone are always used together on-field (which
+guarantees physical proximity), the limited Wifi transmission range is not
+considered as problematic for the following Implementations.
+
+\subsubsection{TCP sockets for communication}\label{subsubsec:4_tcp_sockets}
+Even though the video recording is performed by the on-board RaspberryPi, the
+recording must be initializable by the user via the ground station.
+Therefore, the communication between these two computers is established using
+a \ac{TCP}~\cite{cerfProtocolPacketNetwork1974} connection.
+As potentially large video files are transferred wirelessly from the
+RaspberryPi to the ground station, a connection-orientated and confirmed
+\ac{TCP} connection protocol is chosen over a connectionless
+\ac{UDP}~\cite{SpecificationInternetTransmission1974} to avoid data loss.\\\\
+
+\noindent When the ground station connects to the drone, a \ac{TCP} socket is
+opened in a background thread.
+The corresponding \ac{TCP} connection is initialized by the
+ground station using a three-way handshake\footnote{The request is sent by the
+ground station, the drone acknowledges, and the ground station acknowledges
+the drone's response}.
+To create the socket, Python's \texttt{socket} module is used to access the
+BSD socket interface.
+Generally, a \ac{TCP} socket is uniquely defined by an IP-Address and the
+corresponding port number.
+As the ground station is directly connected to the RaspberryPi's own WLAN, the
+socket's IP address is equivalent to the ground station's standard gateway.
+The port is set arbitrarily.\\
+To start / end video recordings, pre-defined messages are sent via the created
+\ac{TCP} socket.
+The messages are utf-8 encoded and sent using Python's
+\texttt{socket.sendAll(message)} function.
+The drone on the other connection end uses \texttt{socket.recv()} to listen to
+any messages sent via the \ac{TCP} connection.
+If a message contains one of the pre-defined keywords (e.g.
+\textit{start\_recording}, \textit{end\_recording}), the corresponding action
+is executed.
+The \ac{TCP} socket on the RaspberryPi for receiving control messages is set
+up as shown in following Listing:
+\begin{pythoncode}[caption=create TCP socket, label=alg:create_tcp_port]
+    def create_socket(port: int):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.bind(('0.0.0.0', port))
+            sock.listen()
+            conn, addr = sock.accept()
+\end{pythoncode}
+In the above listing, the option \texttt{SOCK\_STREAM} defines a \ac{TCP}
+connection.
+Furthermore, the option \texttt{'0.0.0.0'} is set as IP address, instructing
+the RaspberryPi  to listen for connections on all available network interfaces
+(on the given port in the provided example).
+Hence, any ground station can simply connect to this port to send
+control instructions.\\
+Some more options which are not explicitly shown are set to avoid multiple
+connections being established on the same port on the one hand but allow a
+connection to be re-established when it gets disconnected unexpectedly on the
+other hand.\\\\
+\noindent Once a video recording has ended (either because the user manually
+ended the recording, or because a timeout / error occurred on the
+RaspberryPi's side), the temporarily saved video is transferred to the ground
+station.
+This process is implemented using \ac{TCP} sockets, too.
+The transmission is initiated by the on-board RaspberryPi.
+The overall process is similar to the message sending part previously
+explained.
+Now however, the drone uses \texttt{socket.sendAll()} iteratively to send the
+video divided into several chunks of 1024 byte size.
+The ground station on the other hand uses \texttt{socket.recv(1024)} to
+receive the video data chunks.
+Once the video is completely transferred, the according file is deleted from
+the on-board computer and the drone is able to record a new video again.\\
+An overview of the control flow which is used to start a measurement recording
+is presented in following \autoref{fig:4_measurement_ctrl_flow}.\\
+\begin{figure}[h!]
+    \centering
+    \includegraphics[scale=0.7]{request_flow.pdf}
+    \caption[Measurement control flow between ground station and drone]{
+        Measurement control flow between the ground station and the drone}
+    \label{fig:4_measurement_ctrl_flow}
+\end{figure}
+\noindent It can be noted that the maximal recording time is limited to 10
+seconds.
+This ensures quick transfer times when the video is being sent to the ground
+station.
+Moreover, the implemented takeoff detection performs best on short video
+sequences (see \autoref{subsec:4_runtime_performance}).\\
+The timeout is set to 10 seconds, as a normal long jump usually does not take
+longer than around seven\footnote{Approach length: 40 m, average run up speed:
+$6.5\frac{m}{s}$, flight time: $1\sec$ leads to about $7\sec$ total jumping
+time} seconds.
+
+\subsubsection{Camera setup and video recording}\label{subsubsec:4_cam_setup_recording}
+Once the RaspberryPi receives the control message to start the video
+recording, the live-stream (see below \autoref{subsubsec:4_live_stream}) is
+interrupted. 
+Afterwards, the video recording is started.
+The captured video frames are saved to a temporary .mp4 file located on the
+on-borad RaspberryPi itself.
+Thus, the full available frame rate and resolution can be used to record the
+long jump.\\
+A frame rate of 60~\ac{FPS} or higher ensures that every phase of the
+jump, in particular the takeoff phase, is well resolved in the time domain.
+The video is recorded at a resolution of $1920 \times 1080$ pixels.
+This resolution is sufficient for the mediapipe framework to fully recognize
+the athlete's posture and joints.\\\\
+\noindent The camera used in this work to record long jumps is the RaspberryPi
+HQ camera in combination with a 16 mm C-Mount tele lens.
+The tele lens allows the drone to keep a safety distance to the athlete
+during the run-up while still keeping the athlete in focus. 
+To manage the video recording parameters and directly interact with the
+camera, the Linux library \texttt{libcamera} is utilized, while the
+\texttt{Picamera2} Python library, built upon \texttt{libcamera}, offers a
+more accessible interface for this purpose.\\
+Picamera2 especially offers the \texttt{create\_video\_configuration} function
+to conveniently set video recording parameters such as frame rate, resolution,
+or the option to rotate the captured frame in-place. 
+Latter one is especially useful in this work, as the camera can thereby be
+mounted to the drone in any orientation while the recorded video is still
+orientated correctly.
+The video frames in this work only need to be rotated by a (multiple of)
+$90^{\circ}$, as the camera is not mounted at some arbitrary diagonal angle. 
+Thus, the required computations can be represented by simply moving each
+video frame's matrix elements to a pre-defined index.
+A $90^{\circ}$ rotation e.g. is performed by simply transposing the matrix
+(in-place) and reversing each row afterwards (applied to each RGB input channel
+respectively)~\cite{godardEfficientOutofCoreOutofPlace2021}.\\
+These transformations are performed before the video frame is written to
+the actual video file.
+Hence, the post-processing overhead is significantly reduced.
+
+\subsection{Handling the incoming video live-stream}\label{subsubsec:4_live_stream}
+In addition to the video recording, a live-streaming video option is
+implemented to allow for aligning the drone alongside the athlete with the
+athlete being centered in the camera image.\\
+The live-stream is implemented similar to the implemented communication
+control flow described earlier (\autoref{subsubsec:4_tcp_sockets}).
+However, package loss in this case is not as relevant as it is in the
+communication protocol.
+Hence, the live-stream is based on \ac{UDP} sockets instead of \ac{TCP}.
+sockets.\\
+As \ac{UDP} is connectionless, no overhead is introduced by connection
+establishment or re-transmitting lost packages.
+This however leads to some video frames getting (potentially) lost, which is
+acceptable in this case, as the video stream is not meant to be used to
+control the drone in real time.\\
+To reduce the used transmission bandwidth further, the live-stream resolution
+is additionally limited to $640 \times 480$ pixels.
+The specific streaming parameters are again set using \texttt{Picamera2}'s
+\texttt{create\_video\_configuration} function as explained in the
+\hyperref[subsubsec:4_cam_setup_recording]{previous paragraph}.
+To allow for higher resolution video recording, the live-stream is not
+available while a video recording is active.\\\\
+\noindent On the ground station's side, the receiving is implemented using
+openCV's \texttt{VideoCapture} function which can be called with the
+RaspberryPi's IP address and the corresponding port number as arguments.
+The received video frames are then visualized using the same signal and slot
+mechanisms as explained in \autoref{subsec:4_lj_software_gui}.
