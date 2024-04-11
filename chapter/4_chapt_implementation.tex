@@ -1861,7 +1861,7 @@ The live-stream is implemented similar to the implemented communication
 control flow described earlier (\autoref{subsubsec:4_tcp_sockets}).
 However, package loss in this case is not as relevant as it is in the
 communication protocol.
-Hence, the live-stream is based on \ac{UDP} sockets instead of \ac{TCP}.
+Hence, the live-stream is based on \ac{UDP} sockets instead of \ac{TCP}
 sockets.\\
 As \ac{UDP} is connectionless, no overhead is introduced by connection
 establishment or re-transmitting lost packages.
@@ -1872,11 +1872,16 @@ To reduce the used transmission bandwidth further, the live-stream resolution
 is additionally limited to $640 \times 480$ pixels.
 The specific streaming parameters are again set using \texttt{Picamera2}'s
 \texttt{create\_video\_configuration} function as explained in the
-\hyperref[subsubsec:4_cam_setup_recording]{previous paragraph}.
+\hyperref[subsubsec:4_cam_setup_recording]{video recording paragraph}.
 To allow for higher resolution video recording, the live-stream is not
 available while a video recording is active.\\\\
 \noindent On the ground station's side, the receiving is implemented using
 openCV's \texttt{VideoCapture} function which can be called with the
 RaspberryPi's IP address and the corresponding port number as arguments.
+The received video frames are wrapped in the custom \texttt{Frame} class which
+is already used in the video analysis process.
+Thus, the incoming video frames could be directly analyzed.
 The received video frames are then visualized using the same signal and slot
 mechanisms as explained in \autoref{subsec:4_lj_software_gui}.
+In order to allow for aligning the drone next to the athlete, the video stream
+is shown in the \hyperref[sec:appendix_livestream]{control panel}.
