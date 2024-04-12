@@ -1,10 +1,48 @@
 \graphicspath{{./figures/}}
 \chapter{Conclusion and outlook}
-Finally, a complete drone based long-jump evaluation tool has been developed.
-Therefore, a drone was built from scratch which allows recording long-jump
+Finally, a drone based long-jump evaluation tool has been developed.
+A drone was built from scratch which allows recording long-jump
 videos of athletes during their training.
 The drone is fully controllable by a custom implement software running on a
-ground station PC.
-The ground station software is able to analyze any pre-recorded long-jump
-video regarding knee angles, arm angles and takeoff conditions (takeoff
-position and takeoff angle).
+ground station PC.\\
+Furthermore, a long-jump analysis software was developed and integrated in the
+ground station's software.
+It is able to analyse any pre-recorded long-jump video regarding
+knee angles, arm angles and takeoff conditions (takeoff position and takeoff
+angle).\\\\
+\noindent However, in addition to the jumping parameters that are currently
+analyzable a variety of analysis parameters can be added to offer an athlete
+the best possible training support.
+Therefore, the analysis software is implemented highly modular to allow for
+convenient extension development.
+One of the most important extensions is the calculation of distances in
+video frames which allows for deeper analysis options.
+Mainly, an athlete's velocity (especially during the takeoff) can be
+calculated based on distance measurements.
+Moreover, more advanced parameters, such as the jumping height and
+stride lengths during the approach can be analyzed.
+Distance measurements however, involve the on-field camera calibration
+using a calibration target which might limit the flexibilty.\\\\
+\noindent Furthermore, currently, only little video pre-processing is
+performed in advance of the body key-point detection stage.
+This should be considered in more detail, as it heavily influences the
+calculated jumping parameters.
+Especially (motion) blurred videos should be pre-processed.\\
+To further improve the pose detection quality, transfer-learning approaches
+should be considered to refine mediapipe's pose detection model specifically
+for lomg-jump videos.\\\\
+\noindent Moreover, the takeoff detection is currently based on a
+computational expensive minimization problem which is not suitable
+for longer video sequences.
+Thus, machine learning based options (using \acp{CNN}) should be considered to
+improve the takeoff detection performance.\\\\
+\noindent Taking the drone into consideration, further improvements are
+required to guarantee a stable flight in different conditions.
+As the drone flies at rather low heights, \ac{GPS} is not suitable as only
+position estimate source for the flight controller.
+It should be considered using advanced sensors like optical flow sensors in
+combination with height sensors allowing for more exact movements and better
+video recording conditions.\\
+Finally, flight safety improvements should be implemented.
+This especially concerns the usage of distanc sonsors to avoid the drone
+crashing into obstacles or even persons.         
