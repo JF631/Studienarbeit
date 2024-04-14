@@ -1272,7 +1272,7 @@ A detailed comparison between both flight controllers is given in
     \hline
     \multicolumn{3}{|c|}{Flight Controller Comparison}\\
     \hline
-    Criteria & PixHawk & Navio2\\
+    Criteria & PixHawk 2.4.8 & Navio2\\
     \hline
     \hline
     Processor & ARM Cortex M4 with FPU / 32-bit co-processor & Depends on Raspberry
@@ -1286,11 +1286,11 @@ A detailed comparison between both flight controllers is given in
     and 6.6V ADC input, 8 \acs{PWM} outputs, 6 Auxiliary outputs & UART, I2C, ADC, PPM / 
     S.BUS input, 14 \acs{PWM} outputs\\
     \hline
-    Dimensions\newline(W x H x L) in mm & $50 \times 15.5 \times 81.5$ & $55 \times 65$\\ 
+    Dimensions\newline(W x H x L) in mm & $50 \times 15.5 \times 81.5$ & $55 \times 65 (W \times L)$\\ 
     \hline
     Other & Failsafe options (e.g. extra power supply, \acs{GPS}, etc.) & None\\
     \hline
-    Price (Eur.) & TBD & TBD\\
+    Price (Eur.) & about 120 & 200 \\
     \hline
     \end{tabular}
     \caption[Flight controller comparison]{Comparison between PixHawk and 
@@ -1459,7 +1459,7 @@ one itself, too.
 By this combination of exchanging heartbeats between the two systems, a correct
 connection is ensured.\\
 The camera and thus, video recording control is discussed separately in
-\autoref{subsubsec:4_pi_wifi} (and following).\\\\
+\autoref{subsec:4_pi_wifi} (and following).\\\\
 \noindent Implementation wise, the heartbeat connection is handled in an own
 thread.
 Thus, the connection is kept alive in background while the \ac{GUI} stays
@@ -1648,7 +1648,7 @@ stops and loiters at it's current position.}.
 \subsection{GUI control panel}\label{subsec:4_drone_ctrl_panel_gui}
 As aforementioned, the drone control as well as drone status messages (e.g.
 GPS satelite count, errors) and the camera live-stream (
-\autoref{subsec:4_rec_stream_video}) are combined into one \ac{GUI} control
+\autoref{subsec:4_live_stream}) are combined into one \ac{GUI} control
 panel, allowing for a convenient drone - ground station interaction.
 Thus, as long as the control panel is openend, the \ac{TCP} connection (used
 for camera control) and the control connection (via MAVLink) is kept alive.\\

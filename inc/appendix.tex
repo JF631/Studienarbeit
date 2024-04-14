@@ -20,6 +20,51 @@
 \FloatBarrier
 \newpage
 
+\section{Analysis module overview}
+\label{sec:appendix_ljanalizer}
+
+The long-jump analysis is implemented as own python module \texttt{ljanalyzer}
+with several sub-modules.
+The module's structure is showed in the following:
+\begin{figure}[h!]
+    \centering
+    \scalebox{1.2}{ % Adjust the scaling factor as needed
+    \centering
+        \begin{minipage}{1.0\textwidth}
+            \dirtree{%
+            .1 ljanalizer.
+            .2 Frame.
+            .2 Video.
+            .2 Posedetector.
+            .2 Framebuffer.
+            .2 Evaluation.
+            .2 Parameterfile.
+        }
+        \end{minipage}
+    }
+    \caption[Python analysis module overview]{Python long jump analysis module
+    overview.}
+    \label{fig:appendix_ljanalizer_overview}
+\end{figure}
+\FloatBarrier
+\noindent As the frame and video sub-module are most important in this work,
+both class diagrams are shown in the following:
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[scale=0.9]{frame_class.pdf}
+    \caption[Frame class diagram]{Frame class diagram}
+    \label{fig:appendix_frame_class}
+\end{figure}
+
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[scale=0.8]{video_class.pdf}
+    \caption[Video class diagram]{Video class diagram}
+    \label{fig:appendix_video_class}
+\end{figure}
+
+\newpage
+
 \section{Live-Stream video visualization}
 \label{sec:appendix_livestream}
 \begin{figure}[htpb]
