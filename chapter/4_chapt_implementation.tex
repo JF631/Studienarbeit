@@ -1,8 +1,15 @@
 \graphicspath{{./figures/}}
 \chapter{Implementation}\label{chapt:4_implementation}
 This chapter focuses on the overall project's implementation.
-It mainly covers the four parts hardware assembly, long jump analysis,
-drone control and their consolidation into one \ac{GUI}.
+It is divided into the development of the analysis software and the
+development and assembly of the drone.\\
+First, the analysis software implementation is explained including the
+video processing, the development of an automatic takeoff frame detection and
+and the handling of analysis results.\\
+Afterwards, the drone's hardware assembly, flight related as well as camera
+related software parts are implemented.\\
+The drone related controls and the jump analysis process are combined into one
+\ac{GUI}.
 
 \section{Long-jump analysis}\label{sec:4_analysis_software}
 In order to analyze recorded long jump videos a ground station software is

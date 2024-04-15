@@ -2,8 +2,9 @@
 \chapter{Methodology} 
 The following chapter provides an overview over the relevant development 
 components that are used within this project.
-Therefore, the used software packages are introduced before a short outline of
-the utilized drone hardware is given.
+Especially, the chosen programming language as well as the used Mediapipe
+framework are discussed.
+Moreover, some important Python modules are introduced.
 
 \section{Software fundamentals}\label{sec:2_software_fund}
 As the main part of this project's software will run on a portable remote
@@ -176,7 +177,7 @@ significantly benefit from pre-compiled code regarding their runtime behavior.
 \subsection{Software overview}\label{subsec:3_versions}
 The software within this work is implemented using python (see
 \autoref{subsec:2_programming_language}).
-As it supports a wide range of software features, a variety of
+As the work supports a wide range of software features, a variety of
 different packages is used.
 The most relevant packages and frameworks are numpy for efficient numerical
 operations, h5py for convenient HDF5 file operations and PyQt5, which is used
@@ -274,9 +275,9 @@ software to always guarantee control over the drone.\\
 Thus, a simple \ac{GUI} is developed to offer a convenient drone control and 
 video analysis process.\\
 The \ac{GUI} is developed using Qt and its Python binding PyQt.
-Both are presented in this section. 
+Both are presented in this section.\\
 
-\subsection{Development framework Qt}\label{subsec:2_qt}
+\subsection*{Development framework Qt}\label{subsec:2_qt}
 Qt is a development framework based on the programming language C++.
 It includes a \ac{GUI} toolkit and therefore enables platform-independent
 application development.

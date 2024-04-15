@@ -3,32 +3,34 @@
 \begin{center}
         \textbf{Abstract}
 \end{center}
-In this work, a comprehensive, drone based analysis tool for the technical
-analysis of athletics long-jump was developed.
-It combines a self-constructed drone for recording long-jump footage with the
-development of a ground station software for analyzing any pre-recorded
-long-jump videos.\\
-The analysis process offers insights in some of the most important approach-
+In this work, a comprehensive, drone based tool for analyzing the
+motion of long-jump athletes was developed.
+The presented work combines the development of a self-constructed drone for
+recording long-jump footage with the development of a ground station software
+which can be used for analyzing any pre-recorded long-jump video.\\
+The analysis results offer insights in some of the most important approach-
 and jumping parameters (e.g. takeoff angle, knee- and arm angles).
-The drone enables those parameters to be analyzed throughout the whole jump
-in detail.\\
-The presented work is devided into the analysis software development and the
+The drone enables those key parameters to be analyzed throughout the whole
+jump in detail.\\
+This work is devided into the analysis software development and the
 development and assembly of the drone.\\
 First, an analysis pipeline is implemented which calculates the jumping
-parameters based on a video input showing one jumping athlete. 
-The pipeline relies on Google's machine learning framework Mediapipe to
-calculate the jumping parameters based on the recorded athlete's body
-position.
-The analysis results are stored in a hdf5 file and can be visualized in the
-developed analysis software.
-Additionally, an automatic takeoff detection is implemented to support a
-convenient analysis process.
+parameters based solely on a video input.
+To identify joints and key body points, the pipeline utilizes Google's
+machine learning framework Mediapipe.
+Subsequently, based on the detection results, the jumping parameters are
+calculated.
+The analysis results are stored in a hdf5 file and can be visualized within
+the developed analysis software.
+Additionally, an automatic takeoff frame detection is implemented to support a
+convenient and quick analysis process.
 Hence, the tool can be used for on-field analysis in outdoor long-jump
 training.\\
 The drone hardware includes a Pixhawk as flight control unit alongside with
 a RaspberryPi companion computer to record and live-stream the long-jump video
 footage.
-The drone is controllable via the ground station software.\\ 
+The drone is controllable via the ground station software using the MAVLink
+protocol.\\ 
 \vfill
 
 \newpage
@@ -38,33 +40,35 @@ The drone is controllable via the ground station software.\\
 \begin{center}
         \textbf{Zusammenfassung}
 \end{center}
-Im Rahmen dieser Arbeit wurde ein Drohnengestütztes Analyse-Werkzeug zur
+Im Rahmen dieser Arbeit wurde ein Drohnengestütztes Analyse-Tool zur
 Technikanalyse von Weitsprüngen in der Leichtathletik entwickelt.
-Es kombiniert die Entwicklung einer selbstgebauten Drohne zur Aufnahme von
-Weitsprungvideos mit der Entwicklung einer Bodenstationssoftware zur Analyse
-beliebig aufgezeichneter Weitsprungvideos.\\
-Der Analyseprozess bietet Einblicke in einige der wichtigsten Anlauf- und
+Die Arbeit kombiniert die Entwicklung einer selbstgebauten Drohne zur Aufnahme
+von Weitsprungvideos mit der Entwicklung einer Bodenstationssoftware zur
+Analyse beliebiger, zuvor aufgezeichneter Weitsprungvideos.\\
+Die Analyseergebnisse bieten Einblicke in einige der wichtigsten Anlauf- und
 Sprungparameter (z.B. Absprungwinkel, Knie- und Armwinkel).
-Mit der Drohne können diese Parameter während des gesamten Sprunges im Detail
-analysiert werden.\\
+Mit Hilfe der Drohne können diese Parameter während des gesamten Sprungs
+detailliert analysiert werden.\\
 Die vorliegende Arbeit gliedert sich in die Entwicklung der Analysesoftware
 und die Entwicklung und den Zusammenbau der Drohne.\\
-Zunächst wird eine Analysepipeline implementiert, die die Sprungparameter auf
-der Grundlage einer Video Eingabe, die einen einzelnen springenden Athleten
-zeigt.
-Die Pipeline stützt sich auf Googles Mediapipe machine learning Framework, um
-die Sprungparameter auf der Grundlage der Körperposition des Athleten zu
+Zunächst wird eine Analysepipeline implementiert, die die Sprungparameter
+auf Grundlage eines Weitsprungvideos berechnet.
+Die Pipeline stützt sich hierbei auf Googles machine learning
+Framework Mediapipe, welches zum Erkennen und Lokalisieren von Gelenken
+verwendet wird.
+Die Ergebnisse werden anschließend genutzt, um die Sprungparameter zu
 berechnen.
-Die Analyseergebnisse werden in einer hdf5-Datei gespeichert und können
-mittels der entwickelten Analysesoftware visualisiert werden.
+Zudem werden die Analyseergebnisse in einer hdf5-Datei gespeichert und
+können mittels der entwickelten Analysesoftware visualisiert werden.
 Zusätzlich wurde eine automatische Absprungerkennung implementiert, um einen
-effizientne Analyseprozess zu gewährleisten.
+effizienten Analyseprozess zu gewährleisten.
 So kann das entwickelte Tool direkt auf dem Sportplatz für die Analyse von
-technischen Weitsprungtrainingseinheiten im Freien eingesetzt werden.\\
+technischen Weitsprungtrainingseinheiten eingesetzt werden.\\
 Die Hardware der Drohne setzt sich zusammen aus einem Pixhawk als
 Flugsteuerungseinheit und einem RaspberryPi Computer zur Aufzeichnung und
 Live-Übertragung des Videomaterials.
-Die Drohne kann zusätzlich über die Bodenstationssoftware gesteuert werden.
+Die Drohne kann zudem mittels der Bodenstationssoftware und dem MAVLink
+Protokoll gesteuert werden.
 \vfill
 \end{otherlanguage}
 
